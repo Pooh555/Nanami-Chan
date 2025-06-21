@@ -6,3 +6,6 @@ build
 
 # Ignore personal conversation history
 conversation_history/
+
+# Ignore API keys
+API_keys.java

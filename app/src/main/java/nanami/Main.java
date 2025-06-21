@@ -1,6 +1,7 @@
 package nanami;
 
 import llm_wrapper.Ollama;
+import tts.ElevenlabsTTS;
 
 public class Main {
     public static String personality = "Nanami Osaka";
@@ -15,6 +16,8 @@ public class Main {
          *  - Default
          */
         Ollama model = new Ollama(Main.modelName, Main.personality);
-        model.launch();
+        // model.launch();
+        ElevenlabsTTS test = new ElevenlabsTTS();
+        test.test();
     }
 }

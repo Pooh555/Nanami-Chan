@@ -23,8 +23,11 @@ dependencies {
     // This dependency is used by the application.
     implementation libs.guava
 
-    // Libraries for JSON file management
-    implementation 'org.json:json:20250517'
+    // Libraries for JSON file management=
+    implementation 'org.json:json:20231013'
+
+    // Dependency for MP3 audio playback (JLayer)
+    implementation 'javazoom:jlayer:1.0.1'
 }
 
 // Apply a specific Java toolchain to ease working on different environments.
