@@ -1,7 +1,6 @@
 package nanami;
 
 import llm_wrapper.Ollama;
-import tts.FreeTTS;
 
 public class Main {
     public static String personality = "Nanami Osaka";
@@ -16,7 +15,6 @@ public class Main {
          *  - Default
          */
         Ollama model = new Ollama(Main.modelName, Main.personality);
-        // model.launch();
-        FreeTTS.test();
+        model.launch();
     }
 }

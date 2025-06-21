@@ -25,9 +25,6 @@ dependencies {
 
     // Libraries for JSON file management
     implementation 'org.json:json:20250517'
-
-    // Libraries for Free-TTS
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
 }
 
 // Apply a specific Java toolchain to ease working on different environments.
