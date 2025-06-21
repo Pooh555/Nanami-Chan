@@ -20,6 +20,8 @@ import java.util.stream.Collectors;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import tts.ElevenlabsTTS;
+
 public class Ollama {
      private final String modelName;
      private final String modelPersonality;
@@ -158,6 +160,7 @@ public class Ollama {
      public void launch() throws Exception {
           // Get messages from the terminal (temporary)
           Scanner scanner = new Scanner(System.in);
+          String recievedMessage;
 
           try {
                while (true) {
@@ -171,7 +174,11 @@ public class Ollama {
                          break;
                     }
 
-                    System.out.println("\n\n\n" + this.getResponseText(userPrompt));
+                    recievedMessage = this.getResponseText(userPrompt);
+                    ElevenlabsTTS voice = new ElevenlabsTTS();
+
+                    System.out.println("\n" + recievedMessage);
+                    voice.speak(recievedMessage);
                }
           } finally {
                this.saveConversationHistory();
