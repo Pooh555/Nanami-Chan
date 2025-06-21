@@ -2,6 +2,7 @@ package LLM_wrapper;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -40,11 +41,14 @@ public class Ollama {
 
      private String loadPersonalityFromFile(String personalityIdentifier) throws IOException {
           // Selecting the personality based on the user's choice
-          String personalityPath = "";
+          String personalityPath = "/home/pooh555/coding/Nanami/personalities/";
 
           switch (personalityIdentifier) {
                case "Kita Ikuyo":
-                    personalityPath = "/home/pooh555/coding/Nanami/personalities/kita_ikuyo.txt";
+                    personalityPath = personalityPath + "kita_ikuyo.txt";
+                    break;
+               case "Nanami Osaka":
+                    personalityPath = personalityPath + "nanami_osaka.txt";
                     break;
                default:
                     throw new IOException("Unknown personality identifier: " + personalityIdentifier
@@ -154,9 +158,9 @@ public class Ollama {
      public void launch() throws Exception {
           Scanner scanner = new Scanner(System.in);
 
-          try { 
+          try {
                while (true) {
-                    System.out.print(">> "); 
+                    System.out.print(">> ");
 
                     String userPrompt = scanner.nextLine();
 
@@ -168,8 +172,26 @@ public class Ollama {
                     System.out.println("\n\n\n" + this.getResponseText(userPrompt));
                }
           } finally {
+               this.saveConversationHistory();
                scanner.close();
           }
+     }
+
+     public void saveConversationHistory() {
+          int count = 1;
+          
+          for (JSONObject message : conversationHistory) {
+               String jsonString = message.toString();
+
+               try (FileWriter file = new FileWriter(
+                         "/home/pooh555/coding/Nanami/conversation_history/message_" + count + ".json")) {
+                    file.write(jsonString);
+                    count++;
+               } catch (IOException e) {
+                    e.printStackTrace();
+               }
+          }
+
      }
 
      private String escapeJson(String text) {

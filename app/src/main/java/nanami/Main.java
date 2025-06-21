@@ -3,6 +3,8 @@ package nanami;
 import LLM_wrapper.Ollama;
 
 public class Main {
+    public static String personality = "Nanami Osaka";
+    public static String modelName = "llama3:latest";
     public static void main(String[] args) throws Exception {
         /*
          * Available model
@@ -12,7 +14,7 @@ public class Main {
          *  - Kita Ikuyo
          *  - Default
          */
-        Ollama model = new Ollama("llama3:latest", "Kita Ikuyo");
+        Ollama model = new Ollama(Main.modelName, Main.personality);
         model.launch();
     }
 }
