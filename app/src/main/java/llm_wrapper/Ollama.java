@@ -1,4 +1,4 @@
-package LLM_wrapper;
+package llm_wrapper;
 
 import java.io.BufferedReader;
 import java.io.File;
