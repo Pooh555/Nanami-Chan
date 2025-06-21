@@ -1,12 +1,18 @@
 package nanami;
 
-import java.io.IOException;
-
 import LLM_wrapper.Ollama;
 
 public class Main {
-    public static void main(String[] args) throws IOException {
-        Ollama model = new Ollama();
-        System.out.println(model.getResponse());
+    public static void main(String[] args) throws Exception {
+        /*
+         * Available model
+         *  - Ollama: llama3:lastest
+         * 
+         * Available personalities
+         *  - Kita Ikuyo
+         *  - Default
+         */
+        Ollama model = new Ollama("llama3:latest", "Kita Ikuyo");
+        model.launch();
     }
 }

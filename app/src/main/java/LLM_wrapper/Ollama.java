@@ -1,6 +1,7 @@
 package LLM_wrapper;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -8,67 +9,174 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
+import java.util.stream.Collectors;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class Ollama {
-     public String getResponse() throws IOException {
-       // Variables for the model and prompt
-        String modelName = "llama3:latest";
-        String promptText = "Hello, who are you?";
+     private final String modelName;
+     private final String modelPersonality;
+     private final List<JSONObject> conversationHistory;
+     private static final String OLLAMA_API_URL = "http://localhost:11434/api/chat";
 
-        // Set up the URL and connection
-        URI uri = null;
-        
-        try {
-            uri = new URI("http://localhost:11434/api/generate");
-        } catch (java.net.URISyntaxException e) {
-            // Handle the case where the URI string is malformed
-            throw new IOException("Invalid URI syntax: " + e.getMessage(), e);
-        }
+     public Ollama(String modelName, String personalityIdentifier) throws IOException {
+          this.modelName = modelName;
+          this.conversationHistory = new ArrayList<>();
+          this.modelPersonality = this.loadPersonalityFromFile(personalityIdentifier);
 
-        URL url = uri.toURL();
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        connection.setRequestMethod("POST");
-        connection.setRequestProperty("Content-Type", "application/json; utf-8");
-        connection.setRequestProperty("Accept", "application/json");
-        connection.setDoOutput(true);
+          if (!this.modelPersonality.isEmpty()) {
+               JSONObject systemMessage = new JSONObject();
+               systemMessage.put("role", "system");
+               systemMessage.put("content", this.modelPersonality);
+               conversationHistory.add(systemMessage);
+          }
+     }
 
-        // JSON body using variables
-        String jsonInputString = String.format("{\"model\": \"%s\", \"prompt\":\"%s\", \"stream\":false}", modelName,
-                promptText);
+     private String loadPersonalityFromFile(String personalityIdentifier) throws IOException {
+          // Selecting the personality based on the user's choice
+          String personalityPath = "";
 
-        // Write the JSON body to the request
-        try (OutputStream os = connection.getOutputStream()) {
-            byte[] input = jsonInputString.getBytes(StandardCharsets.UTF_8);
-            os.write(input, 0, input.length);
-        } catch (Exception e) {
-            throw new IOException("Unable to access the output stream.");
-        }
+          switch (personalityIdentifier) {
+               case "Kita Ikuyo":
+                    personalityPath = "/home/pooh555/coding/Nanami/personalities/kita_ikuyo.txt";
+                    break;
+               default:
+                    throw new IOException("Unknown personality identifier: " + personalityIdentifier
+                              + ". Provide a valid path or identifier.");
+          }
 
-        // Get the response
-        int code = connection.getResponseCode();
-        
-        System.out.println("Response code: " + code);
+          File personalityFile = new File(personalityPath);
 
-        // Read the response body
-        BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8));
-        StringBuilder response = new StringBuilder();
-        String line;
+          if (!personalityFile.exists()) {
+               throw new IOException("Personality file not found: " + personalityPath);
+          }
+          if (!personalityFile.canRead()) {
+               throw new IOException("Cannot read personality file: " + personalityPath + ". Check permissions.");
+          }
 
-        while ((line = in.readLine()) != null) {
-            response.append(line);
-        }
+          try {
+               List<String> lines = Files.readAllLines(Paths.get(personalityPath), StandardCharsets.UTF_8);
+               return lines.stream().collect(Collectors.joining(System.lineSeparator()));
+          } catch (IOException e) {
+               throw new IOException("Error reading personality file '" + personalityPath + "': " + e.getMessage(), e);
+          }
+     }
 
-        in.close();
+     public String getResponseText(String inputPrompt) throws IOException {
+          HttpURLConnection connection = null;
 
-        System.out.println(response.toString());
+          try {
+               // Open a connection to Ollama
+               URI uri = new URI(Ollama.OLLAMA_API_URL);
+               URL url = uri.toURL();
+               connection = (HttpURLConnection) url.openConnection();
 
-        // Parse the JSON response and print the "response" field
-        JSONObject jsonResponse = new JSONObject(response.toString());
-        String responseText = jsonResponse.getString("response");
-        System.out.println("Response: " + responseText);
+               connection.setConnectTimeout(5000);
+               connection.setReadTimeout(60000);
 
-        return responseText;
-    }
+               connection.setRequestMethod("POST");
+               connection.setRequestProperty("Content-Type", "application/json; utf-8");
+               connection.setRequestProperty("Accept", "application/json");
+               connection.setDoOutput(true);
+
+               // Add the user's latest prompt
+               JSONObject userMessage = new JSONObject();
+               userMessage.put("role", "user");
+               userMessage.put("content", escapeJson(inputPrompt));
+               conversationHistory.add(userMessage);
+
+               // Input the entire conversation history to the model
+               JSONObject requestBody = new JSONObject();
+               requestBody.put("model", this.modelName);
+               requestBody.put("messages", new JSONArray(conversationHistory));
+               requestBody.put("stream", false);
+
+               String jsonInputString = requestBody.toString();
+
+               try (OutputStream os = connection.getOutputStream()) {
+                    byte[] input = jsonInputString.getBytes(StandardCharsets.UTF_8);
+                    os.write(input, 0, input.length);
+               } catch (IOException e) {
+                    throw new IOException(
+                              "Failed to write request body to Ollama. Is the server running and accessible?", e);
+               }
+
+               // Retrieving a response from the model
+               int responseCode = connection.getResponseCode();
+               // System.out.println("Ollama API Response Code: " + responseCode);
+               StringBuilder responseBuilder = new StringBuilder();
+
+               try (BufferedReader in = new BufferedReader(
+                         new InputStreamReader(
+                                   (responseCode >= 200 && responseCode < 300) ? connection.getInputStream()
+                                             : connection.getErrorStream(),
+                                   StandardCharsets.UTF_8))) {
+
+                    String line;
+
+                    while ((line = in.readLine()) != null) {
+                         responseBuilder.append(line);
+                    }
+               }
+
+               String rawResponse = responseBuilder.toString();
+               // System.out.println("Ollama Raw Response: " + rawResponse);
+
+               if (responseCode != HttpURLConnection.HTTP_OK) {
+                    throw new IOException("Ollama API call failed with code " + responseCode + ": " + rawResponse);
+               }
+
+               JSONObject jsonResponse = new JSONObject(rawResponse);
+               String responseText = jsonResponse.getJSONObject("message").getString("content");
+
+               JSONObject assistantMessage = new JSONObject();
+               assistantMessage.put("role", "assistant");
+               assistantMessage.put("content", responseText);
+               conversationHistory.add(assistantMessage);
+
+               return responseText;
+
+          } catch (java.net.URISyntaxException e) {
+               throw new IOException("Invalid URI syntax for Ollama API: " + e.getMessage(), e);
+          } finally {
+               if (connection != null) {
+                    connection.disconnect();
+               }
+          }
+     }
+
+     public void launch() throws Exception {
+          Scanner scanner = new Scanner(System.in);
+
+          try { 
+               while (true) {
+                    System.out.print(">> "); 
+
+                    String userPrompt = scanner.nextLine();
+
+                    if (userPrompt.equalsIgnoreCase("exit") || userPrompt.equalsIgnoreCase("quit")) {
+                         System.out.println("Exiting chat. Goodbye!");
+                         break;
+                    }
+
+                    System.out.println("\n\n\n" + this.getResponseText(userPrompt));
+               }
+          } finally {
+               scanner.close();
+          }
+     }
+
+     private String escapeJson(String text) {
+          return text.replace("\\", "\\\\")
+                    .replace("\"", "\\\"")
+                    .replace("\n", "\\n")
+                    .replace("\r", "\\r")
+                    .replace("\t", "\\t");
+     }
 }
