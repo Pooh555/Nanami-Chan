@@ -156,6 +156,7 @@ public class Ollama {
      }
 
      public void launch() throws Exception {
+          // Get messages from the terminal (temporary)
           Scanner scanner = new Scanner(System.in);
 
           try {
@@ -164,8 +165,9 @@ public class Ollama {
 
                     String userPrompt = scanner.nextLine();
 
+                    // Prompt to exit LLM
                     if (userPrompt.equalsIgnoreCase("exit") || userPrompt.equalsIgnoreCase("quit")) {
-                         System.out.println("Exiting chat. Goodbye!");
+                         System.out.println("おやすみなさい!");
                          break;
                     }
 
