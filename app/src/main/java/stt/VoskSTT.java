@@ -1,11 +1,12 @@
 package stt;
 
-import java.io.FileInputStream;
-import java.io.BufferedInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 
+import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.DataLine;
+import javax.sound.sampled.LineUnavailableException;
+import javax.sound.sampled.TargetDataLine;
 import javax.sound.sampled.UnsupportedAudioFileException;
 
 import org.vosk.LogLevel;
@@ -14,26 +15,98 @@ import org.vosk.LibVosk;
 import org.vosk.Model;
 
 public class VoskSTT {
-    public void test() throws IOException, UnsupportedAudioFileException {
+
+    private final float SAMPLE_RATE = 16000;
+    private final int SAMPLE_SIZE_IN_BITS = 16;
+    private final int CHANNELS = 1;
+    private final boolean SIGNED = true;
+    private final boolean BIG_ENDIAN = false;
+    private final long SILENCE_TIMEOUT_MS = 3000;
+    private final String STT_MODEL_PATH = "./stt/vosk-model-small-en-us-0.15";
+
+    public void listenAndTranscribe() throws LineUnavailableException, IOException, UnsupportedAudioFileException {
         LibVosk.setLogLevel(LogLevel.DEBUG);
 
-        try (Model model = new Model("./stt/vosk-model-small-en-us-0.15");
-                InputStream ais = AudioSystem.getAudioInputStream(
-                        new BufferedInputStream(new FileInputStream("/home/pooh555/coding/Nanami/OSR_us_000_0010_8k.wav")));
-                Recognizer recognizer = new Recognizer(model, 16000)) {
+        AudioFormat format = new AudioFormat(
+                this.SAMPLE_RATE,
+                this.SAMPLE_SIZE_IN_BITS,
+                this.CHANNELS,
+                this.SIGNED,
+                this.BIG_ENDIAN);
+
+        DataLine.Info info = new DataLine.Info(TargetDataLine.class, format);
+
+        if (!AudioSystem.isLineSupported(info)) {
+            System.err.println("Microphone line not supported with the specified format: " + format);
+            return;
+        }
+
+        try (Model model = new Model(this.STT_MODEL_PATH);
+                TargetDataLine microphone = (TargetDataLine) AudioSystem.getLine(info);
+                Recognizer recognizer = new Recognizer(model, this.SAMPLE_RATE)) {
+
+            microphone.open(format);
+            microphone.start();
 
             int nbytes;
-            byte[] b = new byte[4096];
-            while ((nbytes = ais.read(b)) >= 0) {
-                if (recognizer.acceptWaveForm(b, nbytes)) {
-                    System.out.println(recognizer.getResult());
-                } else {
-                    System.out.println(recognizer.getPartialResult());
+            byte[] buffer = new byte[4096];
+            long lastSpeechTime = System.currentTimeMillis();
+            boolean speechDetected = false;
+            boolean hasUserStartedSpeaking = false;
+            StringBuilder fullTranscript = new StringBuilder();
+
+            while (true) {
+                nbytes = microphone.read(buffer, 0, buffer.length);
+
+                if (nbytes == -1) {
+                    break;
                 }
+
+                if (recognizer.acceptWaveForm(buffer, nbytes)) {
+                    String result = recognizer.getResult();
+                    if (result != null && !result.trim().equals("{\"text\":\"\"}")) {
+                        String text = new org.json.JSONObject(result).getString("text");
+                        lastSpeechTime = System.currentTimeMillis();
+                        speechDetected = true;
+                        hasUserStartedSpeaking = true;
+
+                        fullTranscript.append(text).append(" ");
+                    }
+                } else {
+                    String partialResult = recognizer.getPartialResult();
+
+                    if (partialResult != null && !partialResult.trim().equals("{\"partial\":\"\"}")) {
+                        String partialText = new org.json.JSONObject(partialResult).getString("partial");
+
+                        if (!partialText.trim().isEmpty()) {
+                            lastSpeechTime = System.currentTimeMillis();
+                            hasUserStartedSpeaking = true;
+                        }
+                    }
+                }
+
+                System.out.println(speechDetected);
+                System.out.println(System.currentTimeMillis() - lastSpeechTime);
+
+                if (hasUserStartedSpeaking && !speechDetected
+                        && (System.currentTimeMillis() - lastSpeechTime > SILENCE_TIMEOUT_MS)) {
+                    // System.out.println("Detected silence for " + (SILENCE_TIMEOUT_MS / 1000) + "
+                    // seconds. Stopping.");
+                    break;
+                }
+
+                speechDetected = false;
             }
 
-            System.out.println(recognizer.getFinalResult());
+            String finalResult = recognizer.getFinalResult();
+            String finalText = new org.json.JSONObject(finalResult).getString("text");
+
+            fullTranscript.append(finalText);
+
+            System.out.println("Full Transcript: " + fullTranscript.toString().trim());
+
+        } finally {
+            // Microphone automatically closed by try-with-resources
         }
     }
-
 }

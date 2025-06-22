@@ -1,5 +1,10 @@
 package nanami;
 
+import java.io.IOException;
+
+import javax.sound.sampled.LineUnavailableException;
+import javax.sound.sampled.UnsupportedAudioFileException;
+
 import llm_wrapper.Ollama;
 import stt.VoskSTT;
 
@@ -19,7 +24,11 @@ public class Main {
         
         // model.launch();
 
-        VoskSTT decoder = new VoskSTT();
-        decoder.test();
+        VoskSTT stt = new VoskSTT();
+        try {
+            stt.listenAndTranscribe();
+        } catch (LineUnavailableException | IOException | UnsupportedAudioFileException e) {
+            e.printStackTrace();
+        }
     }
 }
