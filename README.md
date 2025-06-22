@@ -45,13 +45,15 @@
 <h2 align="left">Developemnt</h2>
 
 <p>Building the project for the first time.</p>
+
 ```
 cd Nanami-Chan
 chmod +x build.sh # Enable build script
 ./build.sh # Run the build script
 ```
-Then you can add your services' APIs in app/src/main/java/keysAPI_keys.java.
-To compile and run this project.
+<p>Then you can add your services' APIs in app/src/main/java/keysAPI_keys.java.<br></br>
+To compile and run this project.</p>
+
 ```
 ./gradlew clean build
 java -jar app/build/libs/app.jar
