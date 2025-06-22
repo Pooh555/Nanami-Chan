@@ -42,6 +42,8 @@
 
 <h2 align="left">Requirements</h2>
 
+- OpenJDK: 21 
+
 <h2 align="left">Developemnt</h2>
 
 <p>Building the project for the first time.</p>
