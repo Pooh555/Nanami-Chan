@@ -2,7 +2,7 @@
 
 <picture>
   <source
-    width="100%"
+    width="50%"
     srcset="./docs/res/banner/sometimes_even_reality_is_a_lie_banner_4.jpeg"
     media="(prefers-color-scheme: dark)"
   />
@@ -11,7 +11,7 @@
 
 <picture>
   <source
-    width="100%"
+    width="50%"
     srcset="./docs/res/banner/sometimes_even_reality_is_a_lie_banner_4.jpeg"
     media="(prefers-color-scheme: light), (prefers-color-scheme: no-preference)"
   />
