@@ -34,7 +34,7 @@ public class Main {
                 try {
                     userPrompt = stt.listenAndTranscribe();
                 } catch (LineUnavailableException | IOException | UnsupportedAudioFileException e) {
-                    e.printStackTrace();
+                    throw new Exception("Invalid URI syntax for Ollama API: " + e.getMessage(), e);
                 }
 
                 // Prompt to exit LLM

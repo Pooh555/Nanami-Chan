@@ -31,19 +31,14 @@ public class Model {
         }
     }
 
-    protected String loadPersonalityFromFile(String personalityIdentifier) throws IOException {
+    private String loadPersonalityFromFile(String personalityIdentifier) throws IOException {
         // Selecting the personality based on the user's choice
         String personalityPath = "./personalities/";
 
         switch (personalityIdentifier) {
-            case "Kita Ikuyo":
-                personalityPath = personalityPath + "kita_ikuyo.txt";
-                break;
-            case "Nanami Osaka":
-                personalityPath = personalityPath + "nanami_osaka.txt";
-                break;
-            default:
-                throw new IOException("Unknown personality identifier: " + personalityIdentifier
+            case "Kita Ikuyo" -> personalityPath = personalityPath + "kita_ikuyo.txt";
+            case "Nanami Osaka" -> personalityPath = personalityPath + "nanami_osaka.txt";
+            default -> throw new IOException("Unknown personality identifier: " + personalityIdentifier
                         + ". Provide a valid path or identifier.");
         }
 
@@ -65,7 +60,7 @@ public class Model {
         }
     }
 
-    public void saveConversationHistory() {
+    public void saveConversationHistory() throws IOException {
         String historyPath = "./conversation_history";
         int count = 1;
 
@@ -80,7 +75,7 @@ public class Model {
                 file.write(jsonString);
                 count++;
             } catch (IOException e) {
-                e.printStackTrace();
+                throw new IOException("Invalid URI syntax for Ollama API: " + e.getMessage(), e);
             }
         }
     }

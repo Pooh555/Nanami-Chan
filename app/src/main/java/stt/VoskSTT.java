@@ -9,13 +9,12 @@ import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.TargetDataLine;
 import javax.sound.sampled.UnsupportedAudioFileException;
 
-import org.vosk.LogLevel;
-import org.vosk.Recognizer;
 import org.vosk.LibVosk;
+import org.vosk.LogLevel;
 import org.vosk.Model;
+import org.vosk.Recognizer;
 
 public class VoskSTT {
-
     private final float SAMPLE_RATE = 16000;
     private final int SAMPLE_SIZE_IN_BITS = 16;
     private final int CHANNELS = 1;
