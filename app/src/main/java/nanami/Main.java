@@ -23,11 +23,6 @@ public class Main {
          * - Nanami Osaka (From 現実もたまには嘘をつく)
          */
         Ollama model = new Ollama(Main.modelName, Main.personality);
-
-        // model.launchTerminal();
-
-        // VoskSTT stt = new VoskSTT();
-
         VoskSTT stt = new VoskSTT();
         ElevenlabsTTS voice = new ElevenlabsTTS();
         String userPrompt = "";
