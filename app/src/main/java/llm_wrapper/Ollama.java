@@ -8,17 +8,15 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.Scanner;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import keys.API_keys;
 import tts.ElevenlabsTTS;
 
 public class Ollama extends Model {
-     private static final String OLLAMA_API_URL = "http://localhost:11434/api/chat";
-
      public Ollama(String modelName, String personalityIdentifier) throws IOException {
           super(modelName, personalityIdentifier);
      }
@@ -28,7 +26,7 @@ public class Ollama extends Model {
 
           try {
                // Open a connection to Ollama
-               URI uri = new URI(Ollama.OLLAMA_API_URL);
+               URI uri = new URI(API_keys.OLLAMA_API_URL);
                URL url = uri.toURL();
                connection = (HttpURLConnection) url.openConnection();
 
@@ -63,8 +61,13 @@ public class Ollama extends Model {
 
                // Retrieving a response from the model
                int responseCode = connection.getResponseCode();
-               // System.out.println("Ollama API Response Code: " + responseCode);
+
+               if (responseCode != HttpURLConnection.HTTP_OK) {
+                    throw new IOException("Ollama API call failed with code " + responseCode + ": " + rawResponse);
+               }
+
                StringBuilder responseBuilder = new StringBuilder();
+               String line;
 
                try (BufferedReader in = new BufferedReader(
                          new InputStreamReader(
@@ -72,24 +75,16 @@ public class Ollama extends Model {
                                              : connection.getErrorStream(),
                                    StandardCharsets.UTF_8))) {
 
-                    String line;
-
                     while ((line = in.readLine()) != null) {
                          responseBuilder.append(line);
                     }
                }
 
                String rawResponse = responseBuilder.toString();
-               // System.out.println("Ollama Raw Response: " + rawResponse);
-
-               if (responseCode != HttpURLConnection.HTTP_OK) {
-                    throw new IOException("Ollama API call failed with code " + responseCode + ": " + rawResponse);
-               }
-
                JSONObject jsonResponse = new JSONObject(rawResponse);
                String responseText = jsonResponse.getJSONObject("message").getString("content");
-
                JSONObject assistantMessage = new JSONObject();
+
                assistantMessage.put("role", "assistant");
                assistantMessage.put("content", responseText);
                super.conversationHistory.add(assistantMessage);
@@ -115,17 +110,20 @@ public class Ollama extends Model {
                while (true) {
                     System.out.print(">> ");
 
+                    ElevenlabsTTS voice = new ElevenlabsTTS();
                     String userPrompt = scanner.nextLine();
 
                     // Prompt to exit LLM
                     if (userPrompt.equalsIgnoreCase("exit") || userPrompt.equalsIgnoreCase("quit")) {
-                         System.out.println("おやすみなさい!");
+                         recievedMessage = this.getResponseText("I have got to go now. Goodbye, see you next time.");
+                         
+                         System.out.println("\n" + recievedMessage);
+                         voice.speak(recievedMessage);
                          break;
                     }
 
                     recievedMessage = this.getResponseText(userPrompt);
-                    ElevenlabsTTS voice = new ElevenlabsTTS();
-
+                    
                     System.out.println("\n" + recievedMessage);
                     voice.speak(recievedMessage);
                }
@@ -135,5 +133,4 @@ public class Ollama extends Model {
           }
      }
 
-     
 }
