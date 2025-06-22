@@ -6,6 +6,7 @@
 </div>
 
 <h2 align="left">Introduction</h2>
+
 <p>With the advent of large language model (LLM), brining your waifu to life has never been more plausible. In this project, I created an Nanami Chan (She is form the manga "Sometimes Even Reality Is a Lie."), who can comfort you whenever you need her.</p> 
 
 > Inspired by [Neuro-sama](https://www.youtube.com/@Neurosama)
@@ -17,12 +18,14 @@
 <p>This project is still in a very early stage of development, so feel free to join our community in <a href="https://discord.gg/SeqsnGth">Discord server</a>.</p>
 
 <h2 align="left">Advantages</h2>
+
 <p>Because this project is mainly written in Java, it can be run on any platform with Java Virtual Machine (JVM). Unlike other simaillar projects, the models and services behind this work are also free to use without any paywall.</p>
 
 
 <h2 align="left">Capabilities</h2>
 
 - [x] Brain
+  - [ ] Chat in terminal
   - [ ] Chat in [Discord](https://discord.com)
   - [ ] Memory
 - [ ] Ears
@@ -37,3 +40,21 @@
     - [ ] Auto look at
     - [ ] Idle eye movement
 
+<h2 align="left">Requirements</h2>
+
+<h2 align="left">Developemnt</h2>
+
+<p>Building the project for the first time.</p>
+
+```
+cd Nanami-Chan
+chmod +x build.sh # Enable build script
+./build.sh # Run the build script
+```
+<p>Then you can add your services' APIs in app/src/main/java/keysAPI_keys.java.<br></br>
+To compile and run this project.</p>
+
+```
+./gradlew clean build
+java -jar app/build/libs/app.jar
+```
