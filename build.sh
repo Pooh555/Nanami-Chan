@@ -21,3 +21,5 @@ else
   cp "dummy_files/$SOURCE_FILE" "$DEST_FILE"
   echo "File '$SOURCE_FILE' copied to '$DEST_FILE'."
 fi
+
+mkdir -p "conversation_history"
