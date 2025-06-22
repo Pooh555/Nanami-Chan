@@ -1,6 +1,7 @@
 package nanami;
 
 import llm_wrapper.Ollama;
+import stt.VoskSTT;
 
 public class Main {
     public static String personality = "Nanami Osaka";
@@ -14,8 +15,11 @@ public class Main {
          *  - Kita Ikuyo (From  ぼっちざろっく!)
          *  - Nanami Osaka (From 現実もたまには嘘をつく)
          */
-        Ollama model = new Ollama(Main.modelName, Main.personality);
+        // Ollama model = new Ollama(Main.modelName, Main.personality);
         
-        model.launch();
+        // model.launch();
+
+        VoskSTT decoder = new VoskSTT();
+        decoder.test();
     }
 }

@@ -8,6 +8,7 @@
 plugins {
     // Apply the application plugin to add support for building a CLI application in Java.
     id 'application'
+    id 'com.github.johnrengelman.shadow' version '7.1.2'
 }
 
 repositories {
@@ -15,19 +16,22 @@ repositories {
 }
 
 dependencies {
-    // Use JUnit Jupiter for testing.
-    testImplementation libs.junit.jupiter
+    // Testing with JUnit Jupiter (explicit version)
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher:1.10.2'
 
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    // Guava (explicit version)
+    implementation 'com.google.guava:guava:33.0.0-jre'
 
-    // This dependency is used by the application.
-    implementation libs.guava
-
-    // Libraries for JSON file management=
+    // JSON handling
     implementation 'org.json:json:20231013'
 
-    // Dependency for MP3 audio playback (JLayer)
+    // MP3 playback
     implementation 'javazoom:jlayer:1.0.1'
+
+    // STT: JNA and Vosk
+    implementation 'net.java.dev.jna:jna:5.7.0'
+    implementation 'com.alphacephei:vosk:0.3.45'
 }
 
 // Apply a specific Java toolchain to ease working on different environments.
@@ -37,19 +41,27 @@ java {
     }
 }
 
-jar {
+// jar {
+//     manifest {
+//         attributes(
+//             'Main-Class': 'nanami.Main'
+//         )
+//     }
+
+//     duplicatesStrategy = DuplicatesStrategy.INCLUDE
+// }
+
+shadowJar {
+    archiveBaseName.set('app')
+    archiveClassifier.set('') // No `-all` suffix
+    archiveVersion.set('')
     manifest {
         attributes(
             'Main-Class': 'nanami.Main'
         )
     }
-
-    from {
-        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
-    }
-
-    duplicatesStrategy = DuplicatesStrategy.INCLUDE
 }
+
 application {
     // Define the main class for the application.
     mainClass = 'nanami.Main'
