@@ -47,14 +47,14 @@ shadowJar {
     
     manifest {
         attributes(
-            'Main-Class': 'nanami.Main'
+            'Main-Class': 'main.Main'
         )
     }
 }
 
 application {
     // Define the main class for the application.
-    mainClass = 'nanami.Main'
+    mainClass = 'main.Main'
 }
 
 tasks.named('test') {

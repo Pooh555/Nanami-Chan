@@ -37,7 +37,7 @@ public class Main {
         String recievedMessage;
         
         try {
-            System.out.println("\nNanami has woken up. You can talk to her now");
+            System.out.println("\nNanami has woken up. You can talk to her now.");
 
             while (true) {
                 // Get user prompt using sound-to-text (STT)
