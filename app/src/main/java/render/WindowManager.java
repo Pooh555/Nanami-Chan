@@ -40,9 +40,9 @@ import static org.lwjgl.system.MemoryStack.stackPush;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
 public class WindowManager {
-    private String title;
-    private int width;
-    private int height;
+    private final String title;
+    private final int width;
+    private final int height;
     private long window;
 
     public WindowManager(String title, int width, int height) {
@@ -74,7 +74,7 @@ public class WindowManager {
         glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);   // Hide the window from the user
         glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);  // Make the window resizable
 
-        window = glfwCreateWindow(this.width, this.height, "Hello World!", NULL, NULL);
+        window = glfwCreateWindow(this.width, this.height, this.title, NULL, NULL);
 
         // Check for any error
         if (window == NULL)
@@ -109,7 +109,7 @@ public class WindowManager {
 
     private void loop() {
 		GL.createCapabilities();
-		glClearColor(1.0f, 0.0f, 0.0f, 0.0f); // Set background color
+		glClearColor((float)(Math.sin(System.nanoTime())), 0.0f, 0.0f, 0.0f); // Set background color
 
 		while ( !glfwWindowShouldClose(window) ) {
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear the framebuffer
