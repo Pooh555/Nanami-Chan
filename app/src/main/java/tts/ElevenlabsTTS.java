@@ -32,10 +32,11 @@ public class ElevenlabsTTS {
         // Regex to find patterns like *word word*
         Pattern pattern = Pattern.compile("\\*[^*]+\\*");
         Matcher matcher = pattern.matcher(text);
+
         return matcher.replaceAll("").trim();
     }
 
-    public void playAudio(String textToSpeak) {
+    public void speak(String textToSpeak) {
         String cleanedText = cleanTextForTTS(textToSpeak);
         JSONObject requestBody = new JSONObject();
 
@@ -44,7 +45,7 @@ public class ElevenlabsTTS {
 
         JSONObject voiceSettings = new JSONObject();
 
-        voiceSettings.put("stability", 0.5); // Adjust for more or less variability
+        voiceSettings.put("stability", 0.1); // Adjust for more or less variability
         voiceSettings.put("similarity_boost", 0.9); // Adjust for clarity and expressiveness
         requestBody.put("voice_settings", voiceSettings);
 
@@ -59,9 +60,7 @@ public class ElevenlabsTTS {
             HttpResponse<InputStream> response = httpClient.send(request, HttpResponse.BodyHandlers.ofInputStream());
 
             if (response.statusCode() == 200) {
-                // System.out.println("Audio stream received. Playing...");
                 playAudioStream(response.body());
-                // System.out.println("Audio playback finished.");
             } else {
                 String errorBody = new String(response.body().readAllBytes());
                 System.err.println("Error generating audio. Status Code: " + response.statusCode());
@@ -77,16 +76,12 @@ public class ElevenlabsTTS {
     private void playAudioStream(InputStream audioStream) {
         try (BufferedInputStream bis = new BufferedInputStream(audioStream)) {
             Player player = new Player(bis);
+            
             player.play();
         } catch (Exception e) {
             System.err.println("Error playing MP3 audio: " + e.getMessage());
             e.printStackTrace();
         }
-    }
-
-    public void speak(String message) {
-        ElevenlabsTTS tts = new ElevenlabsTTS();
-        tts.playAudio(message);
     }
 
     // // Test method

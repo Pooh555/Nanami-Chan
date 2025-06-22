@@ -49,6 +49,7 @@ public class Model {
 
         File personalityFile = new File(personalityPath);
 
+        // File validation
         if (!personalityFile.exists()) {
             throw new IOException("Personality file not found: " + personalityPath);
         }
@@ -68,6 +69,7 @@ public class Model {
         String historyPath = "./conversation_history";
         int count = 1;
 
+        // Remove past chat history
         this.cleanDirectory(historyPath);
 
         for (JSONObject message : this.conversationHistory) {
