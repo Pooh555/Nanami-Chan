@@ -60,3 +60,9 @@ To compile and run this project.</p>
 ./gradlew clean build
 java -jar app/build/libs/nanami.jar
 ```
+
+<p>To run with log messages disabled, please use the command below instead.</p>
+
+```
+java -jar app/build/libs/nanami.jar 2>/dev/null
+```
