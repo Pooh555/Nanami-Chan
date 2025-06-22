@@ -37,6 +37,8 @@ public class Main {
         String recievedMessage;
         
         try {
+            System.out.println("\nNanami has woken up. You can talk to her now");
+
             while (true) {
                 // Get user prompt using sound-to-text (STT)
                 try {
@@ -48,7 +50,7 @@ public class Main {
                 System.out.println("\nUser: " + userPrompt);
 
                 // Prompt to exit LLM
-                if (userPrompt.equalsIgnoreCase("good bye")) {
+                if (userPrompt.equalsIgnoreCase("good bye") || userPrompt.equalsIgnoreCase("goodbye")) {
                     recievedMessage = model.getResponseText("I have got to go now. Goodbye, see you next time.")
                             + " さようなら!";
 
