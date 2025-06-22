@@ -45,7 +45,7 @@ public class ElevenlabsTTS {
 
         JSONObject voiceSettings = new JSONObject();
 
-        voiceSettings.put("stability", 0.1); // Adjust for more or less variability
+        voiceSettings.put("stability", 0.3); // Adjust for more or less variability
         voiceSettings.put("similarity_boost", 0.9); // Adjust for clarity and expressiveness
         requestBody.put("voice_settings", voiceSettings);
 
