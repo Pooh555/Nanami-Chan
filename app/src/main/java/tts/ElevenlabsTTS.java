@@ -39,14 +39,13 @@ public class ElevenlabsTTS {
 
     public void playAudio(String textToSpeak) {
         String cleanedText = cleanTextForTTS(textToSpeak);
-
-        // System.out.println("Generating audio for: \"" + cleanedText + "\"");
-
         JSONObject requestBody = new JSONObject();
+
         requestBody.put("text", cleanedText);
-        requestBody.put("model_id", "eleven_monolingual_v1");
+        requestBody.put("model_id", "eleven_multilingual_v1");
 
         JSONObject voiceSettings = new JSONObject();
+        
         voiceSettings.put("stability", 0.5); // Adjust for more or less variability
         voiceSettings.put("similarity_boost", 0.9); // Adjust for clarity and expressiveness
         requestBody.put("voice_settings", voiceSettings);

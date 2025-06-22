@@ -114,8 +114,8 @@ public class Ollama extends Model {
                     String userPrompt = scanner.nextLine();
 
                     // Prompt to exit LLM
-                    if (userPrompt.equalsIgnoreCase("exit") || userPrompt.equalsIgnoreCase("quit")) {
-                         recievedMessage = this.getResponseText("I have got to go now. Goodbye, see you next time.");
+                    if (userPrompt.equalsIgnoreCase("exit") || userPrompt.equalsIgnoreCase("quit") || userPrompt.equalsIgnoreCase("bye")) {
+                         recievedMessage = this.getResponseText("I have got to go now. Goodbye, see you next time.") + " さようなら!";
                          
                          System.out.println("\n" + recievedMessage);
                          voice.speak(recievedMessage);

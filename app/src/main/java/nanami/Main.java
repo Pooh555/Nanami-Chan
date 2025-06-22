@@ -11,10 +11,11 @@ public class Main {
          *  - Ollama: llama3:lastest
          * 
          * Available personalities
-         *  - Kita Ikuyo
-         *  - Default
+         *  - Kita Ikuyo (From  ぼっちざろっく!)
+         *  - Nanami Osaka (From 現実もたまには嘘をつく)
          */
         Ollama model = new Ollama(Main.modelName, Main.personality);
+        
         model.launch();
     }
 }
