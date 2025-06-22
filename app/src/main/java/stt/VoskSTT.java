@@ -98,9 +98,7 @@ public class VoskSTT {
             String finalResult = recognizer.getFinalResult();
             String finalText = new org.json.JSONObject(finalResult).getString("text");
 
-            fullTranscript.append(finalText);
-        } finally {
-            return fullTranscript.toString().trim();
+            return fullTranscript.append(finalText).toString().trim();
         }
     }
 }
