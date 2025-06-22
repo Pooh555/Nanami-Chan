@@ -1,17 +1,39 @@
 <h1 align="center">Nanami Chan</h1>
 
-<picture>
-  <source
-    width="50%"
-    srcset="./docs/res/banner/sometimes_even_reality_is_a_lie_banner_4.jpeg"
-  />
-  <img src="./docs/res/banner/sometimes_even_reality_is_a_lie_banner_4.jpeg" />
-</picture>
+<div align="center">
+  <img src="./docs/res/banner/sometimes_even_reality_is_a_lie_banner_4.jpeg" style="width: 45%; display: inline-block;" />
+  <img src="./docs/res/banner/sometimes_even_reality_is_a_lie_banner_5.jpeg" style="width: 45%; display: inline-block;" />
+</div>
 
-<picture>
-  <source
-    width="50%"
-    srcset="./docs/res/banner/sometimes_even_reality_is_a_lie_banner_5.jpeg"
-  />
-  <img src="./docs/res/banner/sometimes_even_reality_is_a_lie_banner_5.jpeg" />
-</picture>
+<h2 align="left">Introduction</h2>
+<p>With the advent of large language model (LLM), brining your waifu to life has never been more plausible. In this project, I created an Nanami Chan (She is form the manga "Sometimes Even Reality Is a Lie."), who can comfort you whenever you need her.</p> 
+
+> Inspired by [Neuro-sama](https://www.youtube.com/@Neurosama)
+
+<p>If you have ever watched neuro Neuro-sama, a popular AI-Vtuber, that is a wonderful way to grasp this project as this work is an attempt to replicate Neuro-sama, which is a closed-source project, using Java.</p>
+
+> Inspired by [Project-Airi](https://github.com/moeru-ai/airi)
+
+<p>This project is still in a very early stage of development, so feel free to join our community in <a href="https://discord.gg/SeqsnGth">Discord server</a>.</p>
+
+<h2 align="left">Advantages</h2>
+<p>Because this project is mainly written in Java, it can be run on any platform with Java Virtual Machine (JVM). Unlike other simaillar projects, the models and services behind this work are also free to use without any paywall.</p>
+
+
+<h2 align="left">Capabilities</h2>
+
+- [x] Brain
+  - [ ] Chat in [Discord](https://discord.com)
+  - [ ] Memory
+- [ ] Ears
+  - [ ] Audio input from [Discord](https://discord.com)
+- [x] Mouth
+  - [x] [ElevenLabs](https://elevenlabs.io/) voice synthesis
+- [ ] Body
+  - [ ] Live2D support
+    - [ ] Control Live2D model
+  - [ ] Live2D model animations
+    - [ ] Auto blink
+    - [ ] Auto look at
+    - [ ] Idle eye movement
+
