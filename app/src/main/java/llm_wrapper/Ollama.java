@@ -132,10 +132,4 @@ public class Ollama extends Model {
                scanner.close();
           }
      }
-
-     @Override
-     public void launch() {
-          
-     }
-
 }

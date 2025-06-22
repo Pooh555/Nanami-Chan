@@ -85,10 +85,6 @@ public class Model {
         }
     }
 
-    protected void launch() throws Exception {
-        // Overridden in child class
-    }
-
     protected void launchTerminal() throws Exception {
         // Overridden in child class
     }
