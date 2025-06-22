@@ -16,14 +16,22 @@ public class Main {
     public static void main(String[] args) throws Exception {
         /*
          * Available model
-         * - Ollama: llama3:lastest
+         * - Ollama: llama3:lastest (default)
          * 
          * Available personalities
          * - Kita Ikuyo (From ぼっちざろっく!)
-         * - Nanami Osaka (From 現実もたまには嘘をつく)
+         * - Nanami Osaka (From 現実もたまには嘘をつく) (default)
          */
         Ollama model = new Ollama(Main.modelName, Main.personality);
+        /*
+         * Available speech-to-text options
+         *  - Vosk (vosk-model-small-en-us-0.15) (default)
+         */
         VoskSTT stt = new VoskSTT();
+        /*
+         * Available text-to-speech options
+         * - Elevenlabs (default)
+         */
         ElevenlabsTTS voice = new ElevenlabsTTS();
         String userPrompt = "";
         String recievedMessage;
@@ -37,20 +45,20 @@ public class Main {
                     throw new Exception("Invalid URI syntax for Ollama API: " + e.getMessage(), e);
                 }
 
+                System.out.println("\nUser: " + userPrompt);
+
                 // Prompt to exit LLM
-                if (userPrompt.equalsIgnoreCase("exit") || userPrompt.equalsIgnoreCase("quit")
-                        || userPrompt.equalsIgnoreCase("goodbye")) {
+                if (userPrompt.equalsIgnoreCase("good bye")) {
                     recievedMessage = model.getResponseText("I have got to go now. Goodbye, see you next time.")
                             + " さようなら!";
 
-                    System.out.println("\n" + recievedMessage);
+                    System.out.println("\nNanami Chan: " + recievedMessage);
                     voice.speak(recievedMessage);
                     break;
                 }
-
                 recievedMessage = model.getResponseText(userPrompt);
 
-                System.out.println("\n" + recievedMessage);
+                System.out.println("\nNanami Chan: " + recievedMessage);
                 voice.speak(recievedMessage);
             }
         } finally {
