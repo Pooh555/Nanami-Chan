@@ -63,7 +63,7 @@ public class Ollama extends Model {
                int responseCode = connection.getResponseCode();
 
                if (responseCode != HttpURLConnection.HTTP_OK) {
-                    throw new IOException("Ollama API call failed with code " + responseCode + ": " + rawResponse);
+                    throw new IOException("Ollama API call failed with code " + responseCode);
                }
 
                StringBuilder responseBuilder = new StringBuilder();
