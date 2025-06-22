@@ -83,14 +83,4 @@ public class ElevenlabsTTS {
             e.printStackTrace();
         }
     }
-
-    // // Test method
-    // public void test() {
-    // ElevenlabsTTS tts = new ElevenlabsTTS();
-    // String message = "Um, s-sorry to hear that... *gets nervous* I-I think it's
-    // really important to take care of yourself when you're feeling tired and
-    // stressed out... *pauses slightly* Do you like playing games or doing things
-    // that help you relax? Maybe we could talk about something else for a bit?";
-    // tts.playAudio(message);
-    // }
 }
