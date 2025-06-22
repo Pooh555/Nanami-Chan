@@ -8,4 +8,4 @@ build
 conversation_history/
 
 # Ignore API keys
-API_keys.java
+app/src/main/java/keys/API_keys.java

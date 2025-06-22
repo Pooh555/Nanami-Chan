@@ -15,13 +15,15 @@ import java.util.regex.Pattern;
 
 import javazoom.jl.player.Player;
 
-import tts.API_keys;
+import keys.API_keys;
 
 public class ElevenlabsTTS {
 
-    private static final String API_KEY = API_keys.ELEVENLABS_API_KEY;
-    private static final String TTS_API_URL_BASE = "https://api.elevenlabs.io/v1/text-to-speech/";
-    private static final String DEFAULT_VOICE_ID = "PoHUWWWMHFrA8z7Q88pu";
+    private static final String API_KEY = API_keys.ELEVENLABS_API_KEY; // Add your API key in API_keys.java
+    private static final String TTS_API_URL_BASE = "https://api.elevenlabs.io/v1/text-to-speech/"; // Default URL for
+                                                                                                   // TTS
+    private static final String DEFAULT_VOICE_ID = "PoHUWWWMHFrA8z7Q88pu"; // Get voice ID from Voice Library on
+                                                                           // Elevenlabs
     private final HttpClient httpClient;
 
     public ElevenlabsTTS() {
