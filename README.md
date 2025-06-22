@@ -42,7 +42,7 @@
 
 <h2 align="left">Requirements</h2>
 
-- OpenJDK: 21 
+- OpenJDK: 24 
 
 <h2 align="left">Developemnt</h2>
 
