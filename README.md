@@ -62,12 +62,12 @@ To compile and run this project.</p>
 java -jar app/build/libs/nanami.jar
 ```
 
-<h2>Disclaimer</h2>
-
-<p>I am, by no means, a professional programmer. Hence, my code might not be of the best quality, however, I appreciate every help and suggestions.</p>
-
 <p>To run with log messages disabled, please use the command below instead.</p>
 
 ```
 java -jar app/build/libs/nanami.jar 2>/dev/null
 ```
+
+<h2>Disclaimer</h2>
+
+<p>I am, by no means, a professional programmer. Hence, my code might not be of the best quality, however, I appreciate every help and suggestions.</p>
