@@ -65,13 +65,16 @@ public class Model {
     }
 
     public void saveConversationHistory() {
+        String historyPath = "./conversation_history";
         int count = 1;
+
+        this.cleanDirectory(historyPath);
 
         for (JSONObject message : this.conversationHistory) {
             String jsonString = message.toString();
 
             try (FileWriter file = new FileWriter(
-                    "./conversation_history/message_" + count + ".json")) {
+                    historyPath + "/message" + count + ".json")) {
                 file.write(jsonString);
                 count++;
             } catch (IOException e) {
@@ -80,7 +83,7 @@ public class Model {
         }
     }
 
-    public void launch() throws Exception {
+    protected void launch() throws Exception {
         // Overridden in child class
     }
 
@@ -90,5 +93,26 @@ public class Model {
                 .replace("\n", "\\n")
                 .replace("\r", "\\r")
                 .replace("\t", "\\t");
+    }
+
+    private void cleanDirectory(String directoryPath) {
+        File folder = new File(directoryPath);
+
+        if (folder.exists() && folder.isDirectory()) {
+            File[] files = folder.listFiles();
+
+            if (files != null) {
+                for (File file : files) {
+                    if (file.isFile()) {
+                        try {
+                            file.delete();
+                        } finally {
+                        }
+                    }
+                }
+            }
+        } else {
+            System.err.println("Folder does not exist or is not a directory: " + directoryPath);
+        }
     }
 }
