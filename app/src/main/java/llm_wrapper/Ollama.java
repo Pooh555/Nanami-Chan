@@ -101,7 +101,7 @@ public class Ollama extends Model {
      }
 
      @Override
-     public void launch() throws Exception {
+     public void launchTerminal() throws Exception {
           // Get messages from the terminal (temporary)
           Scanner scanner = new Scanner(System.in);
           String recievedMessage;
@@ -131,6 +131,11 @@ public class Ollama extends Model {
                super.saveConversationHistory();
                scanner.close();
           }
+     }
+
+     @Override
+     public void launch() {
+          
      }
 
 }

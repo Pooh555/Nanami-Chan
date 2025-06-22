@@ -89,6 +89,10 @@ public class Model {
         // Overridden in child class
     }
 
+    protected void launchTerminal() throws Exception {
+        // Overridden in child class
+    }
+
     protected String escapeJson(String text) {
         return text.replace("\\", "\\\\")
                 .replace("\"", "\\\"")

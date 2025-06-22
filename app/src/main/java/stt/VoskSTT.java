@@ -24,7 +24,7 @@ public class VoskSTT {
     private final long SILENCE_TIMEOUT_MS = 3000;
     private final String STT_MODEL_PATH = "./stt/vosk-model-small-en-us-0.15";
 
-    public void listenAndTranscribe() throws LineUnavailableException, IOException, UnsupportedAudioFileException {
+    public String listenAndTranscribe() throws LineUnavailableException, IOException, UnsupportedAudioFileException {
         LibVosk.setLogLevel(LogLevel.DEBUG);
 
         AudioFormat format = new AudioFormat(
@@ -38,8 +38,9 @@ public class VoskSTT {
 
         if (!AudioSystem.isLineSupported(info)) {
             System.err.println("Microphone line not supported with the specified format: " + format);
-            return;
         }
+
+        StringBuilder fullTranscript = new StringBuilder();
 
         try (Model model = new Model(this.STT_MODEL_PATH);
                 TargetDataLine microphone = (TargetDataLine) AudioSystem.getLine(info);
@@ -53,7 +54,7 @@ public class VoskSTT {
             long lastSpeechTime = System.currentTimeMillis();
             boolean speechDetected = false;
             boolean hasUserStartedSpeaking = false;
-            StringBuilder fullTranscript = new StringBuilder();
+            
 
             while (true) {
                 nbytes = microphone.read(buffer, 0, buffer.length);
@@ -85,9 +86,6 @@ public class VoskSTT {
                     }
                 }
 
-                System.out.println(speechDetected);
-                System.out.println(System.currentTimeMillis() - lastSpeechTime);
-
                 if (hasUserStartedSpeaking && !speechDetected
                         && (System.currentTimeMillis() - lastSpeechTime > SILENCE_TIMEOUT_MS)) {
                     // System.out.println("Detected silence for " + (SILENCE_TIMEOUT_MS / 1000) + "
@@ -102,11 +100,8 @@ public class VoskSTT {
             String finalText = new org.json.JSONObject(finalResult).getString("text");
 
             fullTranscript.append(finalText);
-
-            System.out.println("Full Transcript: " + fullTranscript.toString().trim());
-
         } finally {
-            // Microphone automatically closed by try-with-resources
+            return fullTranscript.toString().trim();
         }
     }
 }
