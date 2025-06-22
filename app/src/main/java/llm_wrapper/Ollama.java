@@ -1,8 +1,6 @@
 package llm_wrapper;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -10,12 +8,8 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Scanner;
-import java.util.stream.Collectors;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -26,16 +20,7 @@ public class Ollama extends Model {
      private static final String OLLAMA_API_URL = "http://localhost:11434/api/chat";
 
      public Ollama(String modelName, String personalityIdentifier) throws IOException {
-          super.modelName = modelName;
-          super.conversationHistory = new ArrayList<>();
-          super.modelPersonality = super.loadPersonalityFromFile(personalityIdentifier);
-
-          if (!super.modelPersonality.isEmpty()) {
-               JSONObject systemMessage = new JSONObject();
-               systemMessage.put("role", "system");
-               systemMessage.put("content", super.modelPersonality);
-               conversationHistory.add(systemMessage);
-          }
+          super(modelName, personalityIdentifier);
      }
 
      public String getResponseText(String inputPrompt) throws IOException {
@@ -49,7 +34,6 @@ public class Ollama extends Model {
 
                connection.setConnectTimeout(5000);
                connection.setReadTimeout(60000);
-
                connection.setRequestMethod("POST");
                connection.setRequestProperty("Content-Type", "application/json; utf-8");
                connection.setRequestProperty("Accept", "application/json");
