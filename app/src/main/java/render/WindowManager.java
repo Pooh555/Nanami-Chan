@@ -109,14 +109,12 @@ public class WindowManager {
 
     private void loop() {
 		GL.createCapabilities();
-		glClearColor((float)(Math.sin(System.nanoTime())), 0.0f, 0.0f, 0.0f); // Set background color
+		glClearColor(0.0f, 0.0f, 0.0f, 0.0f); // Set background color
 
 		while ( !glfwWindowShouldClose(window) ) {
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear the framebuffer
 			glfwSwapBuffers(window); // swap the color buffers
-
-			// Poll for window events. The key callback above will only be
-			// invoked during this call.
+            glClearColor((float)(Math.sin(System.currentTimeMillis() / 1000.0)), (float)(Math.cos(System.currentTimeMillis() / 1000.0)), (float)(Math.tan(System.currentTimeMillis() / 1000.0)), 0.0f); // Set background color
 			glfwPollEvents();
 		}
 	}
