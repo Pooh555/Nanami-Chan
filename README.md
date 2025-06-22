@@ -28,7 +28,8 @@
   - [ ] Chat in terminal
   - [ ] Chat in [Discord](https://discord.com)
   - [ ] Memory
-- [ ] Ears
+- [x] Ears
+  - [x] Audio input from terminal using Vosk
   - [ ] Audio input from [Discord](https://discord.com)
 - [x] Mouth
   - [x] [ElevenLabs](https://elevenlabs.io/) voice synthesis
