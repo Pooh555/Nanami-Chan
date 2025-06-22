@@ -21,7 +21,7 @@ public class VoskSTT {
     private final int CHANNELS = 1;
     private final boolean SIGNED = true;
     private final boolean BIG_ENDIAN = false;
-    private final long SILENCE_TIMEOUT_MS = 3000;
+    private final long SILENCE_TIMEOUT_MS = 2000;
     private final String STT_MODEL_PATH = "./stt/vosk-model-small-en-us-0.15";
 
     public String listenAndTranscribe() throws LineUnavailableException, IOException, UnsupportedAudioFileException {
