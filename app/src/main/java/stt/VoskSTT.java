@@ -54,7 +54,6 @@ public class VoskSTT {
             boolean speechDetected = false;
             boolean hasUserStartedSpeaking = false;
             
-
             while (true) {
                 nbytes = microphone.read(buffer, 0, buffer.length);
 
@@ -82,6 +81,8 @@ public class VoskSTT {
                             lastSpeechTime = System.currentTimeMillis();
                             hasUserStartedSpeaking = true;
                         }
+
+                        // System.out.println(partialResult);
                     }
                 }
 
