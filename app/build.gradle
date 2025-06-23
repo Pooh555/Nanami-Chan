@@ -23,6 +23,10 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher:1.10.2'
 
+	// Python server integration
+	implementation 'org.java-websocket:Java-WebSocket:1.5.3'
+    implementation 'org.slf4j:slf4j-simple:1.7.32' 
+
     // Guava (explicit version)
     implementation 'com.google.guava:guava:33.0.0-jre'
 

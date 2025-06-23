@@ -89,7 +89,7 @@ public class WindowManager {
                 System.out.println("\nNanami has woken up. You can talk to her now.");
 
                 while (runningLLMLoop && !glfwWindowShouldClose(window)) {
-                    String userPrompt;
+                    String userPrompt = "goodbye";
                     String receivedMessage;
 
                     // Get user prompt using sound-to-text (STT)
