@@ -4,6 +4,7 @@
 (
   kitty -e bash -c "
     echo 'Starting backend service...'
+    ./gradlew clean build
     java -jar app/build/libs/nanami.jar 2>/dev/null
     echo 'Backend service finished or exited. Press Enter to close this terminal.'
     read -p '' # Keep the terminal open until user presses Enter
@@ -23,7 +24,7 @@
       read -p ''
       exit 1
     fi
-    
+
     echo 'Serving frontend...'
     npm run serve
     echo 'Frontend service finished or exited. Press Enter to close this terminal.'
