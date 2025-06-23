@@ -21,7 +21,7 @@ public class VoskSTT {
     private final boolean SIGNED = true;
     private final boolean BIG_ENDIAN = false;
     private final long SILENCE_TIMEOUT_MS = 2000;
-    private final String STT_MODEL_PATH = "./stt/vosk-model-small-en-us-0.15";
+    private final String STT_MODEL_PATH = "./stt/vosk-model-en-us-0.22-lgraph";
 
     public String listenAndTranscribe() throws LineUnavailableException, IOException, UnsupportedAudioFileException {
         LibVosk.setLogLevel(LogLevel.DEBUG);
