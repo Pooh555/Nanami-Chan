@@ -25,7 +25,7 @@
 <h2 align="left">Capabilities</h2>
 
 - [x] Brain
-  - [ ] Chat in terminal
+  - [x] Chat in terminal
   - [ ] Chat in [Discord](https://discord.com)
   - [ ] Memory
 - [x] Ears
@@ -33,11 +33,11 @@
   - [ ] Audio input from [Discord](https://discord.com)
 - [x] Mouth
   - [x] [ElevenLabs](https://elevenlabs.io/) voice synthesis
-- [ ] Body
-  - [ ] Live2D support
+- [x] Body
+  - [x] Live2D support
     - [ ] Control Live2D model
-  - [ ] Live2D model animations
-    - [ ] Auto blink
+  - [x] Live2D model animations
+    - [x] Auto blink
     - [ ] Auto look at
     - [ ] Idle eye movement
 
