@@ -5,16 +5,16 @@
  * that can be found at https://www.live2d.com/eula/live2d-open-software-license-agreement_en.html.
  */
 
-import { CubismMatrix44 } from '@framework/math/cubismmatrix44';
-import { CubismViewMatrix } from '@framework/math/cubismviewmatrix';
+import { CubismMatrix44 } from "@framework/math/cubismmatrix44";
+import { CubismViewMatrix } from "@framework/math/cubismviewmatrix";
 
-import * as LAppDefine from './lappdefine';
-import { LAppDelegate } from './lappdelegate';
-import { LAppPal } from './lapppal';
-import { LAppSprite } from './lappsprite';
-import { TextureInfo } from './lapptexturemanager';
-import { TouchManager } from './touchmanager';
-import { LAppSubdelegate } from './lappsubdelegate';
+import * as LAppDefine from "./lappdefine";
+import { LAppDelegate } from "./lappdelegate";
+import { LAppPal } from "./lapppal";
+import { LAppSprite } from "./lappsprite";
+import { TextureInfo } from "./lapptexturemanager";
+import { TouchManager } from "./touchmanager";
+import { LAppSubdelegate } from "./lappsubdelegate";
 
 /**
  * 描画クラス。
@@ -127,19 +127,40 @@ export class LAppView {
     const textureManager = this._subdelegate.getTextureManager();
     const resourcesPath = LAppDefine.ResourcesPath;
 
-    let imageName = '';
+    let imageName = "";
 
     // 背景画像初期化
     imageName = LAppDefine.BackImageName;
 
     // 非同期なのでコールバック関数を作成
     const initBackGroundTexture = (textureInfo: TextureInfo): void => {
+      // Dynamic image size to fill the browser window when resized
+      const textureWidth = textureInfo.width;
+      const textureHeight = textureInfo.height;
+      const canvasAspectRatio = width / height;
+      const textureAspectRatio = textureWidth / textureHeight;
+
+      let renderWidth: number;
+      let renderHeight: number;
+
+      if (canvasAspectRatio > textureAspectRatio) {
+        renderWidth = width;
+        renderHeight = width / textureAspectRatio;
+      } else {
+        renderHeight = height;
+        renderWidth = height * textureAspectRatio;
+      }
+
       const x: number = width * 0.5;
       const y: number = height * 0.5;
 
-      const fwidth = textureInfo.width * 2.0;
-      const fheight = height * 0.95;
-      this._back = new LAppSprite(x, y, fwidth, fheight, textureInfo.id);
+      this._back = new LAppSprite(
+        x,
+        y,
+        renderWidth,
+        renderHeight,
+        textureInfo.id
+      );
       this._back.setSubdelegate(this._subdelegate);
     };
 
