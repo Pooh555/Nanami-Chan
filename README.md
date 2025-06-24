@@ -76,7 +76,3 @@ npm run serve
 chmod +x start.sh
 ./start.sh
 ```
-
-<h2>Disclaimer</h2>
-
-<p>I am, by no means, a professional programmer. Hence, my code might not be of the best quality, however, I appreciate every help and suggestions.</p>
