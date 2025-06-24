@@ -15,11 +15,9 @@
 
 > Inspired by [Project-Airi](https://github.com/moeru-ai/airi)
 
-<p>This project is still in a very early stage of development, so feel free to join our community in <a href="https://discord.gg/SeqsnGth">Discord server</a>.</p>
-
 <h2 align="left">Advantages</h2>
 
-<p>Because this project is mainly written in Java, it can be run on any platform with Java Virtual Machine (JVM). Unlike other simaillar projects, the models and services behind this work are also free to use without any paywall.</p>
+<p>Because this project's backend is mainly written in Java, it can be run on any platform with Java Virtual Machine (JVM). Unlike other simaillar projects, the models and services behind this work are also free to use without any paywall.</p>
 
 
 <h2 align="left">Capabilities</h2>
@@ -78,7 +76,3 @@ npm run serve
 chmod +x start.sh
 ./start.sh
 ```
-
-<h2>Disclaimer</h2>
-
-<p>I am, by no means, a professional programmer. Hence, my code might not be of the best quality, however, I appreciate every help and suggestions.</p>
