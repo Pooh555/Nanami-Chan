@@ -48,40 +48,6 @@ public class ElevenlabsTTS {
         requestBody.put("voice_settings", voiceSettings);
 
         String url = TTS_API_URL_BASE + DEFAULT_VOICE_ID;
-
-        ByteRequest request = new ByteRequest(Request.Method.POST, url,
-                response -> {
-                    try {
-                        playAudioStream(new ByteArrayInputStream(response));
-                    } catch (Exception e) {
-                        Log.e("ElevenlabsTTS", "Playback error: " + e.getMessage(), e);
-                    }
-                },
-                error -> {
-                    Log.e("ElevenlabsTTS", "Volley Error: " + error.getMessage(), error);
-                    if (error.networkResponse != null) {
-                        Log.e("ElevenlabsTTS", "Response code: " + error.networkResponse.statusCode);
-                    }
-                }) {
-            @Override
-            public byte[] getBody() {
-                return requestBody.toString().getBytes();
-            }
-
-            @Override
-            public String getBodyContentType() {
-                return "application/json";
-            }
-
-            @Override
-            public java.util.Map<String, String> getHeaders() {
-                java.util.Map<String, String> headers = new java.util.HashMap<>();
-                headers.put("xi-api-key", API_KEY);
-                return headers;
-            }
-        };
-
-        Volley.newRequestQueue(context).add(request);
     }
 
     private void playAudioStream(InputStream audioStream) {
