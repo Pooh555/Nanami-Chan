@@ -44,6 +44,15 @@
 - OpenJDK: 24 
 
 <h2 align="left">Developemnt</h2>
+<p>First step (crucial step), copy dummy_files/API_keys.java to app/java/com/nanami/keys
+  <br></br>
+  You can do it manually or use the script below
+</p>
+
+```
+chmod +x build.sh
+./build.sh
+```
 
 <p>If you are building the project for the first time, I recommend you to use Android studio for convenience. Otherwise you can install the app using the terminal via the command below.</p>
 
