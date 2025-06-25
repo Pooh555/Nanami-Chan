@@ -1,10 +1,13 @@
 package com.nanami.llm_wrapper;
 
+import android.content.Context;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -16,56 +19,50 @@ import org.json.JSONObject;
 public class Model {
     protected String modelName;
     protected String modelPersonality;
+    protected String personalityPath = "./personalities/";
     protected List<JSONObject> conversationHistory;
 
-    public Model(String modelName, String personalityIdentifier) throws Exception {
+    public Model(Context context, String modelName, String personalityIdentifier) throws Exception {
         this.modelName = modelName;
         this.conversationHistory = new ArrayList<>();
-        this.modelPersonality = this.loadPersonalityFromFile(personalityIdentifier);
+        this.modelPersonality = this.loadPersonalityFromFile(context, personalityIdentifier);
 
         if (!this.modelPersonality.isEmpty()) {
             JSONObject systemMessage = new JSONObject();
-
             systemMessage.put("role", "system");
             systemMessage.put("content", this.modelPersonality);
             conversationHistory.add(systemMessage);
         }
     }
 
-    private String loadPersonalityFromFile(String personalityIdentifier) throws IOException {
-        // Selecting the personality based on the user's choice
-        String personalityPath = "./personalities/";
+
+    private String loadPersonalityFromFile(Context context, String personalityIdentifier) throws IOException {
+        String fileName;
 
         switch (personalityIdentifier) {
             case "Kita Ikuyo":
-                personalityPath = personalityPath + "kita_ikuyo.txt";
+                fileName = "personalities/kita_ikuyo.txt";
                 break;
             case "Nanami Osaka":
-                personalityPath = personalityPath + "nanami_osaka.txt";
+                fileName = "personalities/nanami_osaka.txt";
                 break;
             default:
-                throw new IOException("Unknown personality identifier: " + personalityIdentifier
-                        + ". Provide a valid path or identifier.");
+                throw new IOException("Unknown personality identifier: " + personalityIdentifier);
         }
 
-        File personalityFile = new File(personalityPath);
+        try (InputStream is = context.getAssets().open(fileName);
+             BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
 
-        // File validation
-        if (!personalityFile.exists()) {
-            throw new IOException("Personality file not found: " + personalityPath);
-        }
-        if (!personalityFile.canRead()) {
-            throw new IOException("Cannot read personality file: " + personalityPath + ". Check permissions.");
-        }
+            StringBuilder sb = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                sb.append(line).append("\n");
+            }
 
-        try {
-            List<String> lines = readAllLinesCompat(new File(personalityPath));
-
-            return lines.stream().collect(Collectors.joining(System.lineSeparator()));
-        } catch (IOException e) {
-            throw new IOException("Error reading personality file '" + personalityPath + "': " + e.getMessage(), e);
+            return sb.toString().trim();
         }
     }
+
 
     public List<String> readAllLinesCompat(File file) throws IOException {
         List<String> lines = new ArrayList<>();

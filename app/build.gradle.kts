@@ -26,12 +26,23 @@ android {
         }
     }
 
+    packaging {
+        resources {
+            pickFirsts.addAll(listOf("META-INF/AL2.0", "META-INF/LGPL2.1"))
+        }
+    }
+
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
 
-    sourceSets["main"].java.srcDirs("src/main/java", "../../Framework/framework/src/main/java")
+    sourceSets {
+        named("main") {
+            java.srcDirs("src/main/java", "../../Framework/framework/src/main/java")
+        }
+    }
 }
 
 dependencies {
@@ -51,7 +62,12 @@ dependencies {
     implementation(libs.jlayer)
 
     // STT: Vosk
-    implementation(libs.vosk)
+    implementation(libs.appcompat.v131)
+    implementation(libs.vosk.android)
+    implementation(libs.media3.common)
+    implementation(project(":models"))
+
+    // TTS: ElevenLabs
     implementation(libs.volley)
 
     // Test

@@ -1,0 +1,16 @@
+-- Merging decision tree log ---
+manifest
+ADDED from /home/pooh555/coding/nanami/models/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest13283269509793305630.xml:2:13-83
+INJECTED from /home/pooh555/coding/nanami/models/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest13283269509793305630.xml:2:13-83
+	package
+		INJECTED from /home/pooh555/coding/nanami/models/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest13283269509793305630.xml
+	xmlns:android
+		ADDED from /home/pooh555/coding/nanami/models/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest13283269509793305630.xml:2:23-81
+uses-sdk
+INJECTED from /home/pooh555/coding/nanami/models/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest13283269509793305630.xml reason: use-sdk injection requested
+INJECTED from /home/pooh555/coding/nanami/models/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest13283269509793305630.xml
+INJECTED from /home/pooh555/coding/nanami/models/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest13283269509793305630.xml
+	android:targetSdkVersion
+		INJECTED from /home/pooh555/coding/nanami/models/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest13283269509793305630.xml
+	android:minSdkVersion
+		INJECTED from /home/pooh555/coding/nanami/models/build/intermediates/tmp/ProcessLibraryManifest/debug/tempAndroidManifest13283269509793305630.xml

@@ -45,34 +45,8 @@
 
 <h2 align="left">Developemnt</h2>
 
-<p>Building the project for the first time.</p>
+<p>If you are building the project for the first time, I recommend you to use Android studio for convenience. Otherwise you can install the app using the terminal via the command below.</p>
 
 ```
-cd Nanami-Chan
-chmod +x build.sh # Enable build script
-./build.sh # Run the build script
-```
-<p>Then you can add your services' APIs in app/src/main/java/keysAPI_keys.java.<br></br>
-To compile and run this project manually.</p>
-
-```
-# Initiate the backend service
-./gradlew clean build
-java -jar app/build/libs/nanami.jar 2>/dev/null
-```
-<p>In another terminal</p>
-
-```
-# Initiate the frontend service
-cd frontend/TypeScript/frontend/src
-npm run build
-npm run serve
-```
-
-<p>To run automatically (using start.sh).</p>
-
-```
-# Navigate to the project's root directory.
-chmod +x start.sh
-./start.sh
+./gradlew installDebug
 ```

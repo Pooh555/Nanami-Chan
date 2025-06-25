@@ -1,121 +1,145 @@
 package com.nanami.stt;
 
-import android.Manifest;
 import android.content.Context;
-import android.content.pm.PackageManager;
-import android.media.AudioFormat;
-import android.media.AudioRecord;
-import android.media.MediaRecorder;
-import android.util.Log;
+import android.os.Bundle;
+import android.speech.RecognitionListener;
+import android.widget.TextView;
 
-import androidx.core.app.ActivityCompat;
-
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.vosk.Model;
 import org.vosk.Recognizer;
+import org.vosk.android.SpeechService;
+import org.vosk.android.SpeechStreamService;
+import org.vosk.android.StorageService;
 
 import java.io.IOException;
+import java.io.InputStream;
 
-public class VoskSTT {
+import androidx.annotation.OptIn;
+import androidx.media3.common.util.Log;
+import androidx.media3.common.util.UnstableApi;
 
-    private static final String TAG = "VoskSTT";
+public class VoskSTT implements org.vosk.android.RecognitionListener {
+    private static final int PERMISSIONS_REQUEST_RECORD_AUDIO = 1;
 
-    private static final int SAMPLE_RATE = 16000;
-    private static final int CHANNEL_CONFIG = AudioFormat.CHANNEL_IN_MONO;
-    private static final int AUDIO_FORMAT = AudioFormat.ENCODING_PCM_16BIT;
+    private Model model;
+    private SpeechService speechService;
+    private SpeechStreamService speechStreamService;
+    private ModelReadyCallback callback;
 
-    private static final long SILENCE_TIMEOUT_MS = 2000;
-    private static final String STT_MODEL_PATH = "model"; // Path inside assets (see note below)
+    // Define the callback interface
+    public interface ModelReadyCallback {
+        void onModelReady();
+        void onModelFailed(String errorMessage);
+    }    
 
-    private AudioRecord recorder;
-    private boolean isRecording = false;
+    @OptIn(markerClass = UnstableApi.class)
+    public VoskSTT(Context context, ModelReadyCallback callback) {
+        this.callback = callback;   // Accept callback
 
-    public interface OnResultListener {
-        void onResult(String text);
+        /*
+         * The Vosk models are located in /models.
+         */
+        StorageService.unpack(context, "model-en-us", "model",
+                (model) -> {
+                    this.model = model;
+                    if (this.callback != null) {
+                        this.callback.onModelReady();
+                    }
+                },
+                (exception) -> {
+                    Log.e("Vosk", "Failed to unpack model: " + exception.getMessage());
+
+                    if (this.callback != null) {
+                        this.callback.onModelFailed(exception.getMessage());
+                    }
+                });
     }
 
-    public void startListening(android.content.Context context, OnResultListener listener) {
-        new Thread(() -> {
-            try (Model model = new Model();
-                 Recognizer recognizer = new Recognizer(model, SAMPLE_RATE)) {
-
-                int bufferSize = AudioRecord.getMinBufferSize(SAMPLE_RATE, CHANNEL_CONFIG, AUDIO_FORMAT);
-                if (ActivityCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
-                    // Permission not granted; handle appropriately
-                    Log.e(TAG, "Microphone permission not granted.");
-                    return;
-                }
-
-                recorder = new AudioRecord(
-                        MediaRecorder.AudioSource.MIC,
-                        SAMPLE_RATE,
-                        CHANNEL_CONFIG,
-                        AUDIO_FORMAT,
-                        bufferSize);
-
-                byte[] buffer = new byte[bufferSize];
-                recorder.startRecording();
-                isRecording = true;
-
-                StringBuilder transcript = new StringBuilder();
-                long lastSpeechTime = System.currentTimeMillis();
-                boolean hasSpoken = false;
-
-                while (isRecording) {
-                    int read = recorder.read(buffer, 0, buffer.length);
-                    if (read <= 0) continue;
-
-                    if (recognizer.acceptWaveForm(buffer, read)) {
-                        String resultJson = recognizer.getResult();
-                        String text = new JSONObject(resultJson).getString("text");
-
-                        if (!text.isEmpty()) {
-                            transcript.append(text).append(" ");
-                            lastSpeechTime = System.currentTimeMillis();
-                            hasSpoken = true;
-                        }
-                    } else {
-                        String partialJson = recognizer.getPartialResult();
-                        String partial = new JSONObject(partialJson).getString("partial");
-
-                        if (!partial.isEmpty()) {
-                            lastSpeechTime = System.currentTimeMillis();
-                            hasSpoken = true;
-                        }
-                    }
-
-                    if (hasSpoken && (System.currentTimeMillis() - lastSpeechTime) > SILENCE_TIMEOUT_MS) {
-                        break;
-                    }
-                }
-
-                String finalResult = recognizer.getFinalResult();
-                String finalText = new JSONObject(finalResult).getString("text");
-                transcript.append(finalText);
-
-                if (listener != null) {
-                    listener.onResult(transcript.toString().trim());
-                }
-
-            } catch (IOException | RuntimeException | JSONException e) {
-                Log.e(TAG, "Error in speech recognition", e);
-            } finally {
-                stopListening();
-            }
-        }).start();
+    public static int getPermissionsRequestRecordAudio() {
+        return PERMISSIONS_REQUEST_RECORD_AUDIO;
     }
 
-    public void stopListening() {
-        isRecording = false;
-        if (recorder != null) {
-            try {
-                recorder.stop();
-                recorder.release();
-            } catch (Exception e) {
-                Log.w(TAG, "Error releasing recorder", e);
-            }
-            recorder = null;
+    private void pause(boolean checked) {
+        if (speechService != null) {
+            speechService.setPause(checked);
         }
+    }
+
+    public void onDestroy() {
+        if (speechService != null) {
+            speechService.stop();
+            speechService.shutdown();
+            speechService = null;
+        }
+        if (speechStreamService != null) {
+            speechStreamService.stop();
+            speechStreamService = null;
+        }
+    }
+
+    @Override
+    public void onResult(String hypothesis) {
+        Log.d("Vosk", "Text: " + hypothesis);
+
+    }
+
+    @Override
+    public void onFinalResult(String hypothesis) {
+        Log.d("Vosk", "Final Result: " + hypothesis);
+
+        if (speechStreamService != null) {
+            speechStreamService = null;
+        }
+    }
+
+    @Override
+    public void onPartialResult(String hypothesis) {
+        Log.d("Vosk", "Partial Result: " + hypothesis);
+    }
+
+    @OptIn(markerClass = UnstableApi.class)
+    private void recognizeFile(Context context) {
+        if (model == null) {
+            Log.e("Vosk", "Model not loaded yet for file recognition.");
+            return;
+        }
+        if (speechStreamService != null) {
+            speechStreamService.stop();
+            speechStreamService = null;
+        }
+    }
+
+    @OptIn(markerClass = UnstableApi.class)
+    public void recognizeMicrophone() {
+        if (model == null) {
+            Log.e("Vosk", "Model not loaded yet. Cannot start microphone recognition.");
+
+            return;
+        }
+        if (speechService != null) {
+            speechService.stop();
+            speechService.shutdown();
+            speechService = null;
+        }
+        try {
+            Recognizer rec = new Recognizer(model, 16000.0f);
+            speechService = new SpeechService(rec, 16000.0f);
+
+            speechService.startListening(this); // Start listening to the user's speech
+        } catch (IOException e) {
+            Log.e("Vosk", "Error starting microphone recognition: " + e.getMessage());
+        }
+    }
+
+    @OptIn(markerClass = UnstableApi.class)
+    @Override
+    public void onError(Exception exception) {
+        Log.e("Vosk", "Vosk Error: " + exception.getMessage());
+    }
+
+    @Override
+    public void onTimeout() {
+        Log.d("Vosk", "Vosk Timeout");
+        recognizeMicrophone();
     }
 }

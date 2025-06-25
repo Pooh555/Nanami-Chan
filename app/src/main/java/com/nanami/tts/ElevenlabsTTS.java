@@ -16,7 +16,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javazoom.jl.player.Player;
-import keys.API_keys;
+import com.nanami.keys.API_keys;
 
 public class ElevenlabsTTS {
 

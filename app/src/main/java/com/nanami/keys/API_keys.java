@@ -3,7 +3,7 @@ package com.nanami.keys;
 
 public interface  API_keys {
     // Ollama
-    public static final String OLLAMA_API_URL = "http://localhost:11434/api/chat";
+    public static final String OLLAMA_API_URL = "http://172.30.45.80:11434/api/chat";
 
     // Elevenlabs
     // public static final String ELEVENLABS_API_KEY = "sk_a131f1262e30f78d37644361eaa6b4e25effd49c7ed9d0aa";

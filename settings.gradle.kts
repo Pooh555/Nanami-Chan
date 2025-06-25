@@ -20,4 +20,5 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "Nanami Chan"
-include(":app")
+include(":app", ":models")
+
