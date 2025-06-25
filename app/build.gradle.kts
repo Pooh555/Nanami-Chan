@@ -35,13 +35,26 @@ android {
 }
 
 dependencies {
+    // Android
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)
     implementation(libs.constraintlayout)
 
+    // Live2D SDK
     implementation(files("libs/Live2DCubismCore.aar"))
 
+    // JSON
+    implementation(libs.json)
+
+    // MP3 playback
+    implementation(libs.jlayer)
+
+    // STT: Vosk
+    implementation(libs.vosk)
+    implementation(libs.volley)
+
+    // Test
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)

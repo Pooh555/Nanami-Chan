@@ -5,7 +5,7 @@
  * that can be found at http://live2d.com/eula/live2d-open-software-license-agreement_en.html.
  */
 
-package com.nanami;
+package com.nanami.frontend;
 
 import com.live2d.sdk.cubism.framework.math.CubismMatrix44;
 import com.live2d.sdk.cubism.framework.motion.ACubismMotion;

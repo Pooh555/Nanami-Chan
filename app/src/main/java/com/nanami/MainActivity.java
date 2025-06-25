@@ -16,6 +16,9 @@ import android.view.View;
 import android.view.WindowInsets;
 import android.view.WindowInsetsController;
 
+import com.nanami.frontend.GLRenderer;
+import com.nanami.frontend.LAppDelegate;
+
 public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {

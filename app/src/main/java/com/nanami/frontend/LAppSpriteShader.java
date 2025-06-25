@@ -1,4 +1,4 @@
-package com.nanami;
+package com.nanami.frontend;
 
 import android.opengl.GLES20;
 

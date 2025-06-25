@@ -7,7 +7,7 @@
  *
  */
 
-package com.nanami;
+package com.nanami.frontend;
 
 import android.content.res.AssetFileDescriptor;
 import android.media.AudioAttributes;
