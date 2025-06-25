@@ -30,7 +30,7 @@ public class VoskSTT implements org.vosk.android.RecognitionListener {
     public interface ModelReadyCallback {
         void onModelReady();
         void onModelFailed(String errorMessage);
-    }    
+    }
 
     @OptIn(markerClass = UnstableApi.class)
     public VoskSTT(Context context, ModelReadyCallback callback) {
