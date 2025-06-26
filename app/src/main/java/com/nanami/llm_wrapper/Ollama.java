@@ -3,15 +3,12 @@ package com.nanami.llm_wrapper;
 import android.content.Context;
 import android.util.Log;
 
-import androidx.annotation.NonNull;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
@@ -22,88 +19,100 @@ import org.json.JSONObject;
 import com.nanami.keys.API_keys;
 
 public class Ollama extends Model {
-     private static final String TAG = "Ollama";
+     private final String TAG = super.TAG + ":Ollama";
 
+     // Callback interface for a robust workflow
      public interface OllamaCallback {
           void onSuccess(String response);
           void onError(Exception e);
      }
 
+     // Ollama constructor
      public Ollama(Context context, String modelName, String personalityIdentifier) throws Exception {
           super(context, modelName, personalityIdentifier);
      }
 
+     // Retrieve a response JSON String from Ollama API
      public void getResponseText(String inputPrompt, OllamaCallback callback) {
+          // Create a parallel thread for Ollama
           new Thread(() -> {
                HttpURLConnection connection = null;
 
                try {
                     URI uri = new URI(API_keys.OLLAMA_API_URL);
                     URL url = uri.toURL();
+
                     Log.d(TAG, "Attempting to connect to " + url);
 
+                    // Define connection's attributes
                     connection = (HttpURLConnection) url.openConnection();
-                    connection.setConnectTimeout(5000);
-                    connection.setReadTimeout(60000);
-                    connection.setRequestMethod("POST");
-                    connection.setRequestProperty("Content-Type", "application/json; utf-8");
-                    connection.setRequestProperty("Accept", "application/json");
+                    connection.setConnectTimeout(5000);     // Connection's timeout: 5000 ms
+                    connection.setReadTimeout(60000);  // Response wait time timeout: 60000 ms
+                    connection.setRequestMethod("POST");    // Send a POST request to the server
+                    connection.setRequestProperty("Content-Type", "application/json; utf-8");  // Use utf-8
+                    connection.setRequestProperty("Accept", "application/json");     // Use JSON
                     connection.setDoOutput(true);
 
+                    // Create a JSONObject for the user's input prompt
                     JSONObject userMessage = new JSONObject();
-                    userMessage.put("role", "user");
-                    userMessage.put("content", super.escapeJson(inputPrompt));
+
+                    userMessage.put("role", "user");   // Append the role "user" to user's message
+                    userMessage.put("content", super.escapeJson(inputPrompt));  // Append the user's prompt as content
                     conversationHistory.add(userMessage);
 
+                    // Create a JSONObject for the request body (conversation history + latest user's prompt)
                     JSONObject requestBody = new JSONObject();
-                    requestBody.put("model", super.modelName);
-                    requestBody.put("messages", new JSONArray(super.conversationHistory));
-                    requestBody.put("stream", false);
 
+                    requestBody.put("model", super.modelName);   // Specify the model name
+                    requestBody.put("messages", new JSONArray(super.conversationHistory));     //  Append the entire conversation history to the request body
+                    requestBody.put("stream", false);  // Disable data stream
+
+                    // Send a request, wait, and retrieve the response.
                     String jsonInputString = requestBody.toString();
                     JSONObject jsonResponse = getJsonObject(connection, jsonInputString);
                     String responseText = jsonResponse.getJSONObject("message").getString("content");
 
                     JSONObject assistantMessage = new JSONObject();
-                    assistantMessage.put("role", "assistant");
-                    assistantMessage.put("content", responseText);
-                    conversationHistory.add(assistantMessage);
+
+                    assistantMessage.put("role", "assistant");   // Append the role "assistant" to the server's response
+                    assistantMessage.put("content", responseText);    // Append the server's response as content
+                    conversationHistory.add(assistantMessage);   // Add the server's response to the conversation history
 
                     Log.d(TAG, "Ollama's response: " + responseText);
+
                     callback.onSuccess(responseText);
 
                } catch (Exception e) {
                     Log.e(TAG, "Ollama connection failed: " + e.getMessage(), e);
+
                     callback.onError(e);
                } finally {
-                    if (connection != null) connection.disconnect();
+                    if (connection != null) connection.disconnect();  // Disconnect if connection failed
                }
           }).start();
      }
 
-
-     @NonNull
-     private static JSONObject getJsonObject(HttpURLConnection connection, String jsonInputString) throws IOException, JSONException {
+     // Retrieve JSONObject from Ollama's API
+     private JSONObject getJsonObject(HttpURLConnection connection, String jsonInputString) throws IOException, JSONException {
           try (OutputStream os = connection.getOutputStream()) {
                byte[] input = jsonInputString.getBytes(StandardCharsets.UTF_8);
+
                os.write(input, 0, input.length);
           } catch (IOException e) {
-               Log.d(TAG, "Failed to write request body to Ollama. Is the server running and accessible? Attempted to access " + API_keys.OLLAMA_API_URL);
-               throw new IOException("Failed to write request body to Ollama. Is the server running and accessibleAttempted to access " + API_keys.OLLAMA_API_URL, e);
+               Log.e(TAG, "Failed to write request body to Ollama. Is the server running and accessible? Attempted to access " + API_keys.OLLAMA_API_URL);
           }
 
-          // Retrieving a response from the model
+          // Retrieving a response from the model, and convert to string
           int responseCode = connection.getResponseCode();
-
           String rawResponse = getString(connection, responseCode);
+
           return new JSONObject(rawResponse);
      }
 
-     @NonNull
-     private static String getString(HttpURLConnection connection, int responseCode) throws IOException {
+     // Build a string from Ollama's API raw response
+     private String getString(HttpURLConnection connection, int responseCode) throws IOException {
           if (responseCode != HttpURLConnection.HTTP_OK) {
-               Log.d(TAG, "Ollama API call failed with code " + responseCode);
-               throw new IOException("Ollama API call failed with code " + responseCode);
+               Log.e(TAG, "Ollama API call failed with code " + responseCode);
           }
 
           StringBuilder responseBuilder = new StringBuilder();

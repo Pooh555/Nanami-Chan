@@ -16,7 +16,7 @@ import java.util.List;
 import org.json.JSONObject;
 
 public class Model {
-    private final String TAG = "LLM_wrapper";
+    protected final String TAG = "LLM_wrapper";
     protected String modelName;
     protected String modelPersonality;
     protected String personalityPath = "personalities/";

@@ -96,7 +96,7 @@ public class MainActivity extends Activity {
         super.onStart();
 
         LAppDelegate.getInstance().onStart(this);   // Launch Live2D render
-        // this.initializeAndStartVosk();
+        this.initializeAndStartVosk();
         this.initializeAndStartElevenlab();
         try {
             this.initializeAndStartOllama();
