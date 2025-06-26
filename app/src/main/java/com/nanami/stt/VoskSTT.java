@@ -1,9 +1,6 @@
 package com.nanami.stt;
 
 import android.content.Context;
-import android.os.Bundle;
-import android.speech.RecognitionListener;
-import android.widget.TextView;
 
 import org.vosk.Model;
 import org.vosk.Recognizer;
@@ -12,7 +9,6 @@ import org.vosk.android.SpeechStreamService;
 import org.vosk.android.StorageService;
 
 import java.io.IOException;
-import java.io.InputStream;
 
 import androidx.annotation.OptIn;
 import androidx.media3.common.util.Log;
@@ -25,16 +21,16 @@ public class VoskSTT implements org.vosk.android.RecognitionListener {
     private Model model;
     private SpeechService speechService;
     private SpeechStreamService speechStreamService;
-    private ModelReadyCallback callback;
+    private final ModelCallback callback;
 
     // Define the callback interface
-    public interface ModelReadyCallback {
+    public interface ModelCallback {
         void onModelReady();
         void onModelFailed(String errorMessage);
     }
 
     @OptIn(markerClass = UnstableApi.class)
-    public VoskSTT(Context context, ModelReadyCallback callback) {
+    public VoskSTT(Context context, ModelCallback callback) {
         this.callback = callback;   // Accept callback
 
         /*

@@ -26,30 +26,10 @@ public class MainActivity extends Activity {
     private static final String TAG = "MainActivity";
     private GLSurfaceView glSurfaceView;
     private GLRenderer glRenderer;
-
-    // Services
-
-    /*
-     * Available model
-     * - Ollama: llama3:lasest (default)
-     *
-     * Available personalities
-     * - Kita Ikuyo (From ぼっちざろっく!)
-     * - Nanami Osaka (From 現実もたまには嘘をつく) (default)
-     */
     private Ollama ollamaModel;
     private final String modelName = "llama3:latest";
     private final String personality = "Nanami Osaka";
-    /*
-     * Available speech-to-text options
-     *  - Vosk (vosk-model-small-en-us-0.15) (default)
-     */
     private VoskSTT voskModel;
-
-    /*
-     * Available text-to-speech options
-     * - Elevenlabs (default)
-     */
     private ElevenlabsTTS elevenlabModel;
 
 
@@ -184,7 +164,7 @@ public class MainActivity extends Activity {
     private void initializeAndStartVosk() {
         if (voskModel == null) {
             // Initialize Vosk model
-            voskModel = new VoskSTT(this, new VoskSTT.ModelReadyCallback() {
+            voskModel = new VoskSTT(this, new VoskSTT.ModelCallback() {
 
                 @Override
                 public void onModelReady() {

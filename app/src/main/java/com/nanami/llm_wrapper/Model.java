@@ -22,6 +22,12 @@ public class Model {
     protected String personalityPath = "personalities/";
     protected List<JSONObject> conversationHistory;
 
+    // Callback interface for a robust workflow
+    public interface ModelCallback {
+        void onSuccess(String response);
+        void onError(Exception e);
+    }
+
     // Model constructor
     public Model(Context context, String modelName, String personalityIdentifier) throws Exception {
         this.modelName = modelName;
