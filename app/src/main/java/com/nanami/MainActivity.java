@@ -1,6 +1,5 @@
 package com.nanami;
 
-import android.Manifest;
 import android.app.Activity;
 import android.content.pm.PackageManager;
 import android.opengl.GLSurfaceView;
@@ -11,11 +10,9 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowInsets;
 import android.view.WindowInsetsController;
-import android.widget.Toast; // Added for user feedback
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 
 import com.nanami.frontend.GLRenderer;
 import com.nanami.frontend.LAppDelegate;
@@ -23,17 +20,10 @@ import com.nanami.llm_wrapper.Ollama;
 import com.nanami.stt.VoskSTT;
 import com.nanami.tts.ElevenlabsTTS;
 
-import org.json.JSONException;
-import org.vosk.LibVosk;
-
-import java.io.IOException;
+import java.util.Objects;
 
 public class MainActivity extends Activity {
     private static final String TAG = "MainActivity";
-    private static final int RECORD_AUDIO_PERMISSION_REQUEST_CODE = 1;
-
-    private Thread nanamiThread;
-
     private GLSurfaceView glSurfaceView;
     private GLRenderer glRenderer;
 
@@ -86,7 +76,7 @@ public class MainActivity extends Activity {
                             | View.SYSTEM_UI_FLAG_FULLSCREEN
                             | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
         } else {
-            getWindow().getInsetsController().hide(WindowInsets.Type.navigationBars() | WindowInsets.Type.statusBars());
+            Objects.requireNonNull(getWindow().getInsetsController()).hide(WindowInsets.Type.navigationBars() | WindowInsets.Type.statusBars());
             getWindow().getInsetsController()
                     .setSystemBarsBehavior(WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
         }
@@ -96,16 +86,16 @@ public class MainActivity extends Activity {
     protected void onStart() {
         super.onStart();
 
+        try {
+            ollamaModel = new Ollama(this, modelName, personality);
+        } catch (Exception e) {
+            Log.d(TAG, "Failed to initialize Ollama.");
+        }
+
         LAppDelegate.getInstance().onStart(this);   // Launch Live2D render
         this.initializeAndStartVosk();  // Launch Vosk STT
         this.initializeAndStartElevenlab(); // Launch Elevenlab TTS
-
-        // Launch LLM service
-        try {
-            initializeAndStartOllama();
-        } catch (Exception e) {
-            Log.d(TAG, "Failed to initialize " + modelName + ".");
-        }
+        ollamaModel.onStart(this);
     }
 
     @Override
@@ -242,49 +232,6 @@ public class MainActivity extends Activity {
             elevenlabModel.speak("Hello! my name is Nanami Osaka.");
         } else {
             elevenlabModel.speak("Hello! my name is Nanami Osaka.");
-        }
-    }
-
-    private void initializeAndStartOllama() throws Exception {
-        if (ollamaModel == null) {
-            ollamaModel = new Ollama(this, modelName, personality);
-            ollamaModel.getResponseText("Hello! Who are you?", new Ollama.OllamaCallback() {
-                @Override
-                public void onSuccess(String response) {
-                    runOnUiThread(() -> {
-                        Log.d(TAG, "Ollama said: " + response);
-                        Toast.makeText(MainActivity.this, "Ollama said: " + response, Toast.LENGTH_LONG).show();
-                    });
-                }
-
-                @Override
-                public void onError(Exception e) {
-                    runOnUiThread(() -> {
-                        Log.e(TAG, "Ollama error", e);
-                        Toast.makeText(MainActivity.this, "Failed to get response from Ollama: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                    });
-                }
-            });
-
-        } else {
-            ollamaModel.getResponseText("Hello! Who are you?", new Ollama.OllamaCallback() {
-                @Override
-                public void onSuccess(String response) {
-                    runOnUiThread(() -> {
-                        Log.d(TAG, "Ollama said: " + response);
-                        Toast.makeText(MainActivity.this, "Ollama said: " + response, Toast.LENGTH_LONG).show();
-                    });
-                }
-
-                @Override
-                public void onError(Exception e) {
-                    runOnUiThread(() -> {
-                        Log.e(TAG, "Ollama error", e);
-                        Toast.makeText(MainActivity.this, "Failed to get response from Ollama: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                    });
-                }
-            });
-
         }
     }
 }
