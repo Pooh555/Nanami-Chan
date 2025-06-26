@@ -32,16 +32,35 @@ public class MainActivity extends Activity {
     private static final String TAG = "MainActivity";
     private static final int RECORD_AUDIO_PERMISSION_REQUEST_CODE = 1;
 
-    private final String personality = "Nanami Osaka";
-    private final String modelName = "llama3:latest";
     private Thread nanamiThread;
 
     private GLSurfaceView glSurfaceView;
     private GLRenderer glRenderer;
 
     // Services
+    /*
+     * Available model
+     * - Ollama: llama3:lastest (default)
+     *
+     * Available personalities
+     * - Kita Ikuyo (From ぼっちざろっく!)
+     * - Nanami Osaka (From 現実もたまには嘘をつく) (default)
+     */
+    private Ollama ollamaModel;
+    private final String modelName = "llama3:latest";
+    private final String personality = "Nanami Osaka";
+    /*
+     * Available speech-to-text options
+     *  - Vosk (vosk-model-small-en-us-0.15) (default)
+     */
     private VoskSTT voskModel;
+
+    /*
+     * Available text-to-speech options
+     * - Elevenlabs (default)
+     */
     private ElevenlabsTTS elevenlabModel;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,8 +96,13 @@ public class MainActivity extends Activity {
         super.onStart();
 
         LAppDelegate.getInstance().onStart(this);   // Launch Live2D render
-        this.initializeAndStartVosk();
+        // this.initializeAndStartVosk();
         this.initializeAndStartElevenlab();
+        try {
+            this.initializeAndStartOllama();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -134,6 +158,12 @@ public class MainActivity extends Activity {
             elevenlabModel.onDestroy();
             elevenlabModel = null;
         }
+
+        // Terminate LLM process
+        if (ollamaModel != null) {
+            ollamaModel.onDestroy();
+            ollamaModel = null;
+        }
     }
 
     @Override
@@ -156,15 +186,6 @@ public class MainActivity extends Activity {
                     }
                 });
         return super.onTouchEvent(event);
-    }
-
-    private void initializeAndStartElevenlab() {
-        if (elevenlabModel == null) {
-            elevenlabModel = new ElevenlabsTTS(this);
-            elevenlabModel.speak("Hello! my name is Nanami Osaka.");
-        } else {
-            elevenlabModel.speak("Hello! my name is Nanami Osaka.");
-        }
     }
 
     private void initializeAndStartVosk() {
@@ -209,6 +230,58 @@ public class MainActivity extends Activity {
                 Toast.makeText(this, "Audio recording permission denied. Speech recognition will not work.",
                         Toast.LENGTH_LONG).show();
             }
+        }
+    }
+
+    private void initializeAndStartElevenlab() {
+        if (elevenlabModel == null) {
+            elevenlabModel = new ElevenlabsTTS(this);
+            elevenlabModel.speak("Hello! my name is Nanami Osaka.");
+        } else {
+            elevenlabModel.speak("Hello! my name is Nanami Osaka.");
+        }
+    }
+
+    private void initializeAndStartOllama() throws Exception {
+        if (ollamaModel == null) {
+            ollamaModel = new Ollama(this, modelName, personality);
+            ollamaModel.getResponseText("Hello! Who are you?", new Ollama.OllamaCallback() {
+                @Override
+                public void onSuccess(String response) {
+                    runOnUiThread(() -> {
+                        Log.d(TAG, "Ollama said: " + response);
+                        Toast.makeText(MainActivity.this, "Ollama said: " + response, Toast.LENGTH_LONG).show();
+                    });
+                }
+
+                @Override
+                public void onError(Exception e) {
+                    runOnUiThread(() -> {
+                        Log.e(TAG, "Ollama error", e);
+                        Toast.makeText(MainActivity.this, "Failed to get response from Ollama: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    });
+                }
+            });
+
+        } else {
+            ollamaModel.getResponseText("Hello! Who are you?", new Ollama.OllamaCallback() {
+                @Override
+                public void onSuccess(String response) {
+                    runOnUiThread(() -> {
+                        Log.d(TAG, "Ollama said: " + response);
+                        Toast.makeText(MainActivity.this, "Ollama said: " + response, Toast.LENGTH_LONG).show();
+                    });
+                }
+
+                @Override
+                public void onError(Exception e) {
+                    runOnUiThread(() -> {
+                        Log.e(TAG, "Ollama error", e);
+                        Toast.makeText(MainActivity.this, "Failed to get response from Ollama: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    });
+                }
+            });
+
         }
     }
 }
