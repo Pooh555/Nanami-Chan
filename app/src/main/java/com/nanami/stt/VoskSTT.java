@@ -18,33 +18,33 @@ import androidx.media3.common.util.UnstableApi;
 
 public class VoskSTT implements org.vosk.android.RecognitionListener {
     private static final String TAG = "Vosk";
-    private static final int PERMISSIONS_REQUEST_RECORD_AUDIO = 1;
     private Model model;
     private SpeechService speechService;
     private SpeechStreamService speechStreamService;
-    private final ModelCallback callback;
+    private static VoskSTT voskInstance;
 
-    // Define the callback interface
-    public interface ModelCallback {
-        void onModelReady();
-        void onModelFailed(String errorMessage);
+    // Get instance
+    public static VoskSTT getInstance(Context context) {
+        if (voskInstance == null) {
+            voskInstance = new VoskSTT(context);
+        }
+        return voskInstance;
     }
 
     // VoskSTT constructor
     @OptIn(markerClass = UnstableApi.class)
-    public VoskSTT(Context context, ModelCallback callback) {
-        this.callback = callback;
-
+    public VoskSTT(Context context) {
         // Load the Vosk STT model
         StorageService.unpack(context, "model-en-us", "model",
                 (model) -> {
                     this.model = model;
 
-                    if (this.callback != null) {
-                        this.callback.onModelReady();
-                    }
-
                     Log.d(TAG, "Vosk STT model is loaded successfully.");
+
+                    ((Activity) context).runOnUiThread(() -> {
+                        recognizeMicrophone();  // Start listening
+                        Toast.makeText(context, "Vosk STT started listening!", Toast.LENGTH_SHORT).show();
+                    });
                 },
                 (e) -> {
                     Log.e(TAG, "Failed to unpack model: " + e.getMessage());
@@ -53,16 +53,20 @@ public class VoskSTT implements org.vosk.android.RecognitionListener {
                     ((Activity) context).runOnUiThread(() ->
                             Toast.makeText(context, "Failed to unpack model: " + e.getMessage(), Toast.LENGTH_LONG).show()
                     );
-
-                    if (this.callback != null) {
-                        this.callback.onModelFailed(e.getMessage());
-                    }
                 });
     }
 
-    // Pause Vosk service
-    public void onPause() {
-        // TODO: Implement onPause method
+    // Launch Vosk service
+    @OptIn(markerClass = UnstableApi.class)
+    public void onStart(Context context) {
+        // ------------------------------------ //
+        // Temporary code snippet for debugging //
+        // TODO: Implement real service
+        // ------------------------------------ //
+        ((Activity) context).runOnUiThread(() -> {
+            recognizeMicrophone();    // Begin listening
+            Toast.makeText(context, "Vosk STT started listening!", Toast.LENGTH_SHORT).show();
+        });
     }
 
     // Terminate Vosk service
@@ -128,11 +132,6 @@ public class VoskSTT implements org.vosk.android.RecognitionListener {
         } catch (IOException e) {
             Log.e(TAG, "Error starting microphone recognition: " + e.getMessage());
         }
-    }
-
-    // Get microphone permission
-    public static int getPermissionsRequestRecordAudio() {
-        return PERMISSIONS_REQUEST_RECORD_AUDIO;
     }
 
     // Callbacks

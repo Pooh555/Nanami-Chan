@@ -1,19 +1,13 @@
 package com.nanami;
 
 import android.app.Activity;
-import android.content.pm.PackageManager;
 import android.opengl.GLSurfaceView;
 import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowInsets;
 import android.view.WindowInsetsController;
-import android.widget.Toast;
-
-import androidx.annotation.NonNull;
-
 import com.nanami.frontend.GLRenderer;
 import com.nanami.frontend.LAppDelegate;
 import com.nanami.llm_wrapper.Ollama;
@@ -30,8 +24,7 @@ public class MainActivity extends Activity {
     private final String modelName = "llama3:latest";
     private final String personality = "Nanami Osaka";
     private VoskSTT voskModel;
-    private ElevenlabsTTS elevenlabModel;
-
+    private ElevenlabsTTS elevenlabsModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,15 +59,14 @@ public class MainActivity extends Activity {
     protected void onStart() {
         super.onStart();
 
-        try {
-            ollamaModel = new Ollama(this, modelName, personality);
-        } catch (Exception e) {
-            Log.d(TAG, "Failed to initialize Ollama.");
-        }
-
         LAppDelegate.getInstance().onStart(this);   // Launch Live2D render
-        this.initializeAndStartVosk();  // Launch Vosk STT
-        this.initializeAndStartElevenlab(); // Launch Elevenlab TTS
+        // Launch Vosk STT
+        voskModel = VoskSTT.getInstance(this);
+        voskModel.onStart(this);
+        // Launch Elevenlab TTS
+        this.initializeAndStartElevenlab();
+        // Launch Ollama
+        ollamaModel = Ollama.getInstance(this, modelName, personality);
         ollamaModel.onStart(this);
     }
 
@@ -100,11 +92,6 @@ public class MainActivity extends Activity {
 
         glSurfaceView.onPause();
         LAppDelegate.getInstance().onPause();
-
-        if (voskModel != null) {
-            voskModel.onDestroy();
-            voskModel = null;
-        }
     }
 
     @Override
@@ -119,24 +106,15 @@ public class MainActivity extends Activity {
         super.onDestroy();
 
         LAppDelegate.getInstance().onDestroy(); // Terminate Live2D process
-
-        // Terminate STT process
-        if (voskModel != null) {
-            voskModel.onDestroy();
-            voskModel = null;
-        }
+        VoskSTT.getInstance(this).onDestroy();  // Terminate STT process
 
         // Terminate TTS process
-        if (elevenlabModel != null) {
-            elevenlabModel.onDestroy();
-            elevenlabModel = null;
+        if (elevenlabsModel != null) {
+            elevenlabsModel.onDestroy();
+            elevenlabsModel = null;
         }
 
-        // Terminate LLM process
-        if (ollamaModel != null) {
-            ollamaModel.onDestroy();
-            ollamaModel = null;
-        }
+        Ollama.getInstance(this, modelName, personality).onDestroy();   // Terminate LLM process
     }
 
     @Override
@@ -161,57 +139,28 @@ public class MainActivity extends Activity {
         return super.onTouchEvent(event);
     }
 
-    private void initializeAndStartVosk() {
-        if (voskModel == null) {
-            // Initialize Vosk model
-            voskModel = new VoskSTT(this, new VoskSTT.ModelCallback() {
-
-                @Override
-                public void onModelReady() {
-                    runOnUiThread(() -> {
-                        if (voskModel != null) {
-                            voskModel.recognizeMicrophone();    // Begin listening
-                            // Toast.makeText(MainActivity.this, "Vosk STT started listening!", Toast.LENGTH_SHORT).show();
-                        }
-                    });
-                }
-
-                @Override
-                public void onModelFailed(String errorMessage) {
-                    runOnUiThread(() -> {
-                        Toast.makeText(MainActivity.this, "Failed to load Vosk model: " + errorMessage,
-                                Toast.LENGTH_LONG).show();
-                        Log.e(TAG, "Vosk model failed: " + errorMessage);
-                    });
-                }
-            });
-        } else {
-            voskModel.recognizeMicrophone();
-        }
-    }
-
     // Request microphone permission
-    @Override
-    public void onRequestPermissionsResult(int requestCode,
-                                           @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-
-        if (requestCode == VoskSTT.getPermissionsRequestRecordAudio()) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                initializeAndStartVosk();
-            } else {
-                Toast.makeText(this, "Audio recording permission denied. Speech recognition will not work.",
-                        Toast.LENGTH_LONG).show();
-            }
-        }
-    }
+//    @Override
+//    public void onRequestPermissionsResult(int requestCode,
+//                                           @NonNull String[] permissions, @NonNull int[] grantResults) {
+//        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+//
+//        if (requestCode == VoskSTT.getPermissionsRequestRecordAudio()) {
+//            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+//                initializeAndStartVosk();
+//            } else {
+//                Toast.makeText(this, "Audio recording permission denied. Speech recognition will not work.",
+//                        Toast.LENGTH_LONG).show();
+//            }
+//        }
+//    }
 
     private void initializeAndStartElevenlab() {
-        if (elevenlabModel == null) {
-            elevenlabModel = new ElevenlabsTTS(this);
-            elevenlabModel.speak("Hello! my name is Nanami Osaka.");
+        if (elevenlabsModel == null) {
+            elevenlabsModel = new ElevenlabsTTS(this);
+            elevenlabsModel.speak("Hello! my name is Nanami Osaka.");
         } else {
-            elevenlabModel.speak("Hello! my name is Nanami Osaka.");
+            elevenlabsModel.speak("Hello! my name is Nanami Osaka.");
         }
     }
 }

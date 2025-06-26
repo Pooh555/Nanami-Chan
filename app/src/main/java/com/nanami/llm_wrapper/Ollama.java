@@ -22,11 +22,25 @@ import com.nanami.keys.API_keys;
 
 public class Ollama extends Model {
      private final String TAG = super.TAG + ":Ollama";
+     private static Ollama ollamaInstance;
 
      // Callback interface for a robust workflow
      public interface OllamaCallback {
           void onSuccess(String response);
           void onError(Exception e);
+     }
+
+     // Get instance
+     public static Ollama getInstance(Context context, String modelName, String personalityIdentifier) {
+          if (ollamaInstance == null) {
+               try {
+                    ollamaInstance = new Ollama(context, modelName, personalityIdentifier);
+               } catch (Exception e) {
+                    Log.d("LLM_wrapper:Ollama", "Failed to initialize Ollama.");
+               }
+          }
+
+          return ollamaInstance;
      }
 
      // Ollama constructor

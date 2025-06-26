@@ -35,7 +35,7 @@ public class ElevenlabsTTS {
     private MediaPlayer mediaPlayer;
 
     // Callback interface for a robust workflow
-    public interface OllamaCallback {
+    public interface ElevenlabsCallback {
         void onSuccess(String response);
         void onError(Exception e);
     }
