@@ -20,6 +20,7 @@ import androidx.media3.common.util.UnstableApi;
 
 public class VoskSTT implements org.vosk.android.RecognitionListener {
     private static final int PERMISSIONS_REQUEST_RECORD_AUDIO = 1;
+    private static final String TAG = "Vosk";
 
     private Model model;
     private SpeechService speechService;
@@ -47,7 +48,7 @@ public class VoskSTT implements org.vosk.android.RecognitionListener {
                     }
                 },
                 (exception) -> {
-                    Log.e("Vosk", "Failed to unpack model: " + exception.getMessage());
+                    Log.e(TAG, "Failed to unpack model: " + exception.getMessage());
 
                     if (this.callback != null) {
                         this.callback.onModelFailed(exception.getMessage());
@@ -77,30 +78,33 @@ public class VoskSTT implements org.vosk.android.RecognitionListener {
         }
     }
 
+    @OptIn(markerClass = UnstableApi.class)
     @Override
     public void onResult(String hypothesis) {
-        Log.d("Vosk", "Text: " + hypothesis);
+        Log.d(TAG, "Text: " + hypothesis);
 
     }
 
+    @OptIn(markerClass = UnstableApi.class)
     @Override
     public void onFinalResult(String hypothesis) {
-        Log.d("Vosk", "Final Result: " + hypothesis);
+        Log.d(TAG, "Final Result: " + hypothesis);
 
         if (speechStreamService != null) {
             speechStreamService = null;
         }
     }
 
+    @OptIn(markerClass = UnstableApi.class)
     @Override
     public void onPartialResult(String hypothesis) {
-        Log.d("Vosk", "Partial Result: " + hypothesis);
+        Log.d(TAG, "Partial Result: " + hypothesis);
     }
 
     @OptIn(markerClass = UnstableApi.class)
     private void recognizeFile(Context context) {
         if (model == null) {
-            Log.e("Vosk", "Model not loaded yet for file recognition.");
+            Log.e(TAG, "Model not loaded yet for file recognition.");
             return;
         }
         if (speechStreamService != null) {
@@ -112,7 +116,7 @@ public class VoskSTT implements org.vosk.android.RecognitionListener {
     @OptIn(markerClass = UnstableApi.class)
     public void recognizeMicrophone() {
         if (model == null) {
-            Log.e("Vosk", "Model not loaded yet. Cannot start microphone recognition.");
+            Log.e(TAG, "Model not loaded yet. Cannot start microphone recognition.");
 
             return;
         }
@@ -127,19 +131,20 @@ public class VoskSTT implements org.vosk.android.RecognitionListener {
 
             speechService.startListening(this); // Start listening to the user's speech
         } catch (IOException e) {
-            Log.e("Vosk", "Error starting microphone recognition: " + e.getMessage());
+            Log.e(TAG, "Error starting microphone recognition: " + e.getMessage());
         }
     }
 
     @OptIn(markerClass = UnstableApi.class)
     @Override
     public void onError(Exception exception) {
-        Log.e("Vosk", "Vosk Error: " + exception.getMessage());
+        Log.e(TAG, "Vosk Error: " + exception.getMessage());
     }
 
+    @OptIn(markerClass = UnstableApi.class)
     @Override
     public void onTimeout() {
-        Log.d("Vosk", "Vosk Timeout");
+        Log.d(TAG, "Vosk Timeout");
         recognizeMicrophone();
     }
 }

@@ -23,6 +23,7 @@ import com.nanami.llm_wrapper.Ollama;
 import com.nanami.stt.VoskSTT;
 import com.nanami.tts.ElevenlabsTTS;
 
+import org.json.JSONException;
 import org.vosk.LibVosk;
 
 import java.io.IOException;
@@ -40,6 +41,7 @@ public class MainActivity extends Activity {
 
     // Services
     private VoskSTT voskModel;
+    private ElevenlabsTTS elevenlabModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,7 +77,8 @@ public class MainActivity extends Activity {
         super.onStart();
 
         LAppDelegate.getInstance().onStart(this);   // Launch Live2D render
-        this.initializeAndStartVosk();  // Launch STT process
+        this.initializeAndStartVosk();
+        this.initializeAndStartElevenlab();
     }
 
     @Override
@@ -125,6 +128,12 @@ public class MainActivity extends Activity {
             voskModel.onDestroy();
             voskModel = null;
         }
+
+        // Terminate TTS process
+        if (elevenlabModel != null) {
+            elevenlabModel.onDestroy();
+            elevenlabModel = null;
+        }
     }
 
     @Override
@@ -147,6 +156,15 @@ public class MainActivity extends Activity {
                     }
                 });
         return super.onTouchEvent(event);
+    }
+
+    private void initializeAndStartElevenlab() {
+        if (elevenlabModel == null) {
+            elevenlabModel = new ElevenlabsTTS(this);
+            elevenlabModel.speak("Hello! my name is Nanami Osaka.");
+        } else {
+            elevenlabModel.speak("Hello! my name is Nanami Osaka.");
+        }
     }
 
     private void initializeAndStartVosk() {
@@ -181,7 +199,7 @@ public class MainActivity extends Activity {
     // Request microphone permission
     @Override
     public void onRequestPermissionsResult(int requestCode,
-            @NonNull String[] permissions, @NonNull int[] grantResults) {
+                                           @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
         if (requestCode == VoskSTT.getPermissionsRequestRecordAudio()) {
