@@ -1,8 +1,8 @@
 <h1 align="center">Nanami Chan</h1>
 
 <div align="center">
-  <img src="./docs/res/banner/sometimes_even_reality_is_a_lie_banner_4.jpeg" style="width: 45%; display: inline-block;" />
-  <img src="./docs/res/banner/sometimes_even_reality_is_a_lie_banner_5.jpeg" style="width: 45%; display: inline-block;" />
+  <img src="res/banner/sometimes_even_reality_is_a_lie_banner_4.jpeg" style="width: 45%; display: inline-block;" />
+  <img src="res/banner/sometimes_even_reality_is_a_lie_banner_5.jpeg" style="width: 45%; display: inline-block;" />
 </div>
 
 <h2 align="left">Introduction</h2>
