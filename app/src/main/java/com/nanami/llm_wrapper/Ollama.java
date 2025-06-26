@@ -48,7 +48,7 @@ public class Ollama extends Model {
                     // Display a pop-up message
                     ((Activity) context).runOnUiThread(() ->
                               Toast.makeText(context, "Ollama said: " + response, Toast.LENGTH_LONG).show()
-                         );
+                    );
                }
 
                @Override
@@ -58,7 +58,7 @@ public class Ollama extends Model {
                     // Display a pop-up message
                     ((Activity) context).runOnUiThread(() ->
                              Toast.makeText(context, "Failed to get response from Ollama: " + e.getMessage(), Toast.LENGTH_LONG).show()
-                         );
+                    );
                }
           });
      }
