@@ -2,6 +2,7 @@ package com.nanami.llm_wrapper;
 
 import android.content.Context;
 import android.util.Log;
+import android.widget.Toast;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -30,6 +31,44 @@ public class Ollama extends Model {
      // Ollama constructor
      public Ollama(Context context, String modelName, String personalityIdentifier) throws Exception {
           super(context, modelName, personalityIdentifier);
+     }
+
+     public void initializeAndStartOllama(Context context, Ollama ollamaModel, String modelName, String personality) throws Exception {
+          if (ollamaModel == null) {
+               ollamaModel = new Ollama(context, modelName, personality);
+
+               Log.d(TAG, "Successfully load " + modelName + ".");
+
+               ollamaModel.getResponseText("Hello! Who are you?", new Ollama.OllamaCallback() {
+                    @Override
+                    public void onSuccess(String response) {
+                         Log.d(TAG, "Ollama said: " + response);
+                         Toast.makeText(context, "Ollama said: " + response, Toast.LENGTH_LONG).show();
+                    }
+
+                    @Override
+                    public void onError(Exception e) {
+                         Log.e(TAG, "Ollama error", e);
+                         Toast.makeText(context, "Failed to get response from Ollama: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    }
+               });
+
+          } else {
+               ollamaModel.getResponseText("Hello! Who are you?", new Ollama.OllamaCallback() {
+                    @Override
+                    public void onSuccess(String response) {
+                         Log.d(TAG, "Ollama said: " + response);
+                         Toast.makeText(context, "Ollama said: " + response, Toast.LENGTH_LONG).show();
+                    }
+
+                    @Override
+                    public void onError(Exception e) {
+                         Log.e(TAG, "Ollama error", e);
+                         Toast.makeText(context, "Failed to get response from Ollama: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    }
+               });
+
+          }
      }
 
      // Retrieve a response JSON String from Ollama API

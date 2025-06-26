@@ -38,6 +38,7 @@ public class MainActivity extends Activity {
     private GLRenderer glRenderer;
 
     // Services
+
     /*
      * Available model
      * - Ollama: llama3:lastest (default)
@@ -96,12 +97,14 @@ public class MainActivity extends Activity {
         super.onStart();
 
         LAppDelegate.getInstance().onStart(this);   // Launch Live2D render
-        this.initializeAndStartVosk();
-        this.initializeAndStartElevenlab();
+        this.initializeAndStartVosk();  // Launch Vosk STT
+        this.initializeAndStartElevenlab(); // Launch Elevenlab TTS
+
+        // Launch LLM service
         try {
-            this.initializeAndStartOllama();
+            ollamaModel.initializeAndStartOllama(this, ollamaModel, modelName, personality);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            Log.d(TAG, "Failed to initialize " + modelName + ".");
         }
     }
 
@@ -239,49 +242,6 @@ public class MainActivity extends Activity {
             elevenlabModel.speak("Hello! my name is Nanami Osaka.");
         } else {
             elevenlabModel.speak("Hello! my name is Nanami Osaka.");
-        }
-    }
-
-    private void initializeAndStartOllama() throws Exception {
-        if (ollamaModel == null) {
-            ollamaModel = new Ollama(this, modelName, personality);
-            ollamaModel.getResponseText("Hello! Who are you?", new Ollama.OllamaCallback() {
-                @Override
-                public void onSuccess(String response) {
-                    runOnUiThread(() -> {
-                        Log.d(TAG, "Ollama said: " + response);
-                        Toast.makeText(MainActivity.this, "Ollama said: " + response, Toast.LENGTH_LONG).show();
-                    });
-                }
-
-                @Override
-                public void onError(Exception e) {
-                    runOnUiThread(() -> {
-                        Log.e(TAG, "Ollama error", e);
-                        Toast.makeText(MainActivity.this, "Failed to get response from Ollama: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                    });
-                }
-            });
-
-        } else {
-            ollamaModel.getResponseText("Hello! Who are you?", new Ollama.OllamaCallback() {
-                @Override
-                public void onSuccess(String response) {
-                    runOnUiThread(() -> {
-                        Log.d(TAG, "Ollama said: " + response);
-                        Toast.makeText(MainActivity.this, "Ollama said: " + response, Toast.LENGTH_LONG).show();
-                    });
-                }
-
-                @Override
-                public void onError(Exception e) {
-                    runOnUiThread(() -> {
-                        Log.e(TAG, "Ollama error", e);
-                        Toast.makeText(MainActivity.this, "Failed to get response from Ollama: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                    });
-                }
-            });
-
         }
     }
 }

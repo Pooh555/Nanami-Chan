@@ -34,6 +34,12 @@ public class ElevenlabsTTS {
     private final Context context;
     private MediaPlayer mediaPlayer;
 
+    // Callback interface for a robust workflow
+    public interface OllamaCallback {
+        void onSuccess(String response);
+        void onError(Exception e);
+    }
+
     public ElevenlabsTTS(Context context) {
         this.context = context;
     }
