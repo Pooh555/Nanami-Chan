@@ -120,7 +120,7 @@ public class LAppDefine {
         /**
          * Background image file
          */
-        BACK_IMAGE("japan_road_exposure.jpg"),
+        BACK_IMAGE("anime_bedroom.jpg"),
         /**
          * Gear image file
          */
