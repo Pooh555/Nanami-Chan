@@ -13,6 +13,7 @@
 .externalNativeBuild
 .cxx
 local.properties
+/.vscode
 
 # Source code
 app/src/main/java/com/nanami/keys/API_keys.java
