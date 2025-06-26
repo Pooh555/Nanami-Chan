@@ -128,6 +128,7 @@ public class MainActivity extends Activity {
                             break;
                     }
                 });
+
         return super.onTouchEvent(event);
     }
 }
