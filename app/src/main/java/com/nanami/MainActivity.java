@@ -17,7 +17,6 @@ import com.nanami.tts.ElevenlabsTTS;
 import java.util.Objects;
 
 public class MainActivity extends Activity {
-    private static final String TAG = "MainActivity";
     private GLSurfaceView glSurfaceView;
     private GLRenderer glRenderer;
     private Ollama ollamaModel;
@@ -59,13 +58,12 @@ public class MainActivity extends Activity {
     protected void onStart() {
         super.onStart();
 
-        LAppDelegate.getInstance().onStart(this);   // Launch Live2D render
-        // Launch Vosk STT
+        // Launch Live2D renderer, Vosk STT, Elevenlabs TTS and Ollama
+        LAppDelegate.getInstance().onStart(this);
         voskModel = VoskSTT.getInstance(this);
         voskModel.onStart(this);
-        // Launch Elevenlab TTS
-        this.initializeAndStartElevenlab();
-        // Launch Ollama
+        elevenlabsModel = ElevenlabsTTS.getInstance();
+        elevenlabsModel.onStart(this);
         ollamaModel = Ollama.getInstance(this, modelName, personality);
         ollamaModel.onStart(this);
     }
@@ -107,13 +105,7 @@ public class MainActivity extends Activity {
 
         LAppDelegate.getInstance().onDestroy(); // Terminate Live2D process
         VoskSTT.getInstance(this).onDestroy();  // Terminate STT process
-
-        // Terminate TTS process
-        if (elevenlabsModel != null) {
-            elevenlabsModel.onDestroy();
-            elevenlabsModel = null;
-        }
-
+        ElevenlabsTTS.getInstance().onDestroy();    // Terminate TTS process
         Ollama.getInstance(this, modelName, personality).onDestroy();   // Terminate LLM process
     }
 
@@ -137,30 +129,5 @@ public class MainActivity extends Activity {
                     }
                 });
         return super.onTouchEvent(event);
-    }
-
-    // Request microphone permission
-//    @Override
-//    public void onRequestPermissionsResult(int requestCode,
-//                                           @NonNull String[] permissions, @NonNull int[] grantResults) {
-//        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-//
-//        if (requestCode == VoskSTT.getPermissionsRequestRecordAudio()) {
-//            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-//                initializeAndStartVosk();
-//            } else {
-//                Toast.makeText(this, "Audio recording permission denied. Speech recognition will not work.",
-//                        Toast.LENGTH_LONG).show();
-//            }
-//        }
-//    }
-
-    private void initializeAndStartElevenlab() {
-        if (elevenlabsModel == null) {
-            elevenlabsModel = new ElevenlabsTTS(this);
-            elevenlabsModel.speak("Hello! my name is Nanami Osaka.");
-        } else {
-            elevenlabsModel.speak("Hello! my name is Nanami Osaka.");
-        }
     }
 }

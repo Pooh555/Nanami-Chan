@@ -5,7 +5,6 @@ import android.media.AudioAttributes;
 import android.media.MediaPlayer;
 import android.util.Log;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.OptIn;
 import androidx.media3.common.util.UnstableApi;
 
@@ -22,28 +21,37 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ElevenlabsTTS {
 
     private static final String TAG = "Elevenlabs";
-    private static final String API_KEY = API_keys.ELEVENLABS_API_KEY;
-    private static final String TTS_API_URL_BASE = "https://api.elevenlabs.io/v1/text-to-speech/";
-    private static final String DEFAULT_VOICE_ID = "PoHUWWWMHFrA8z7Q88pu"; // Your default voice ID
-    private final Context context;
     private MediaPlayer mediaPlayer;
+    private static ElevenlabsTTS elevenlabsInstance;
 
-    // Callback interface for a robust workflow
-    public interface ElevenlabsCallback {
-        void onSuccess(String response);
-        void onError(Exception e);
+    // Get instance
+    public static ElevenlabsTTS getInstance() {
+        if (elevenlabsInstance == null) {
+            elevenlabsInstance = new ElevenlabsTTS();
+        }
+
+        return elevenlabsInstance;
     }
 
-    public ElevenlabsTTS(Context context) {
-        this.context = context;
+    // Elevenlabs constructor
+    @OptIn(markerClass = UnstableApi.class)
+    public ElevenlabsTTS() {
+        androidx.media3.common.util.Log.d(TAG, "Elevenlabs TTS model is loaded successfully.");
     }
 
+    // Launch Elevenlabs service
+    public void onStart(Context context) {
+        speak("Hello! my name is Nanami Osaka.", context);
+    }
+
+    // Clean text for TTS
     @OptIn(markerClass = UnstableApi.class)
     private String cleanTextForTTS(String text) {
         // Clean the text for the model to speak e.g. removing *emotion emotion*
@@ -55,8 +63,9 @@ public class ElevenlabsTTS {
         return matcher.replaceAll("").trim();
     }
 
+    // Speak the text
     @OptIn(markerClass = UnstableApi.class)
-    public void speak(String textToSpeak) {
+    public void speak(String textToSpeak, Context context) {
         // Launch a parallel thread to handle TTS
         new Thread(() -> {
             // Clean the text
@@ -64,11 +73,11 @@ public class ElevenlabsTTS {
             JSONObject requestBody = new JSONObject();
 
             try {
-                // Initialize a request to the Elevenlab service
+                // Initialize a request to the Elevenlabs service
                 requestBody.put("text", cleanedText);
                 requestBody.put("model_id", "eleven_multilingual_v1");
 
-                // Initialize settings for Elevenlab TTS voice
+                // Initialize settings for Elevenlabs TTS voice
                 JSONObject voiceSettings = new JSONObject();
                 voiceSettings.put("stability", 0.3);
                 voiceSettings.put("similarity_boost", 0.9);
@@ -76,21 +85,21 @@ public class ElevenlabsTTS {
 
                 Log.d(TAG, "Attempting to speak: " + textToSpeak);
 
-                // Send the request body to the Elevenlab server
+                // Send the request body to the Elevenlabs server
                 HttpURLConnection urlConnection = getHttpURLConnection();
 
                 try (OutputStream os = urlConnection.getOutputStream()) {
-                    byte[] input = requestBody.toString().getBytes("utf-8");
+                    byte[] input = requestBody.toString().getBytes(StandardCharsets.UTF_8);
                     os.write(input, 0, input.length);
                 }
 
-                // Retrieve the respond from the Elevenlab server
+                // Retrieve the respond from the Elevenlabs server
                 int responseCode = urlConnection.getResponseCode();
 
                 // Play the audio
                 if (responseCode == HttpURLConnection.HTTP_OK) {
                     try (InputStream is = urlConnection.getInputStream()) {
-                        playAudioStream(is);
+                        playAudioStream(is, context);
                     }
                 } else {
                     Log.e(TAG, "Elevenlabs API request failed with code: " + responseCode);
@@ -108,23 +117,24 @@ public class ElevenlabsTTS {
         }).start();
     }
 
-    @NonNull
+    // Prepare url connection
     private static HttpURLConnection getHttpURLConnection() throws IOException {
-        String urlString = TTS_API_URL_BASE + DEFAULT_VOICE_ID; // Elevenlab API URL
+        String urlString = API_keys.ELEVENLABS_API_URL_BASE + API_keys.VOICE_ID; // Elevenlabs voice URL
         URL url = new URL(urlString);
         HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
 
         // POST the request to the server
         urlConnection.setRequestMethod("POST");
         urlConnection.setRequestProperty("Accept", "audio/mpeg");
-        urlConnection.setRequestProperty("xi-api-key", API_KEY);
+        urlConnection.setRequestProperty("xi-api-key", API_keys.ELEVENLABS_API_KEY);
         urlConnection.setRequestProperty("Content-Type", "application/json");
         urlConnection.setDoOutput(true);
 
         return urlConnection;
     }
 
-    public void playAudioStream(InputStream audioStream) {
+    // Play audio
+    public void playAudioStream(InputStream audioStream, Context context) {
         try {
             // Create a temporary file to store the audio stream
             File tempMp3 = File.createTempFile("temp_elevenlabs_audio", ".mp3", context.getCacheDir());
@@ -147,13 +157,22 @@ public class ElevenlabsTTS {
 
                 mediaPlayer.setOnCompletionListener(mp -> {
                     mp.reset(); // Reset for next playback
-                    tempMp3.delete(); // Delete temporary file after playback
+
+                    // Delete temporary file after playback
+                    if (!tempMp3.delete()) {
+                        Log.e(TAG, "Failed to delete the temporary audio file.");
+                    }
+
                     Log.d(TAG, "Audio playback completed and temporary file deleted.");
                 });
                 mediaPlayer.setOnErrorListener((mp, what, extra) -> {
                     Log.e(TAG, "MediaPlayer error: what=" + what + ", extra=" + extra);
                     mp.reset();
-                    tempMp3.delete();
+
+                    // Delete temporary file after playback
+                    if (!tempMp3.delete()) {
+                        Log.e(TAG, "Failed to delete the temporary audio file.");
+                    }
 
                     return false;
                 });
@@ -190,6 +209,7 @@ public class ElevenlabsTTS {
         }
     }
 
+    // Terminate Elevenlabs service
     public void onDestroy() {
         if (mediaPlayer != null) {
             mediaPlayer.stop();
