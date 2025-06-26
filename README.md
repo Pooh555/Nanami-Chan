@@ -25,7 +25,7 @@
 - [x] Brain
   - [x] Chat in terminal
   - [ ] Chat in [Discord](https://discord.com)
-  - [ ] Memory
+  - [x] Memory
 - [x] Ears
   - [x] Audio input from terminal using Vosk
   - [ ] Audio input from [Discord](https://discord.com)
