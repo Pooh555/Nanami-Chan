@@ -30,6 +30,7 @@ public class Model {
 
         // Tell the LLM model to behave like the desired personality
         assert this.modelPersonality != null;
+        
         if (!this.modelPersonality.isEmpty()) {
             JSONObject systemMessage = new JSONObject();
 
