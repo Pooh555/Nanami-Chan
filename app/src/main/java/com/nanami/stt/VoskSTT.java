@@ -99,6 +99,13 @@ public class VoskSTT implements org.vosk.android.RecognitionListener {
         recognizeMicrophone();
     }
 
+    // Stop vosk service temporary
+    public void onPause() {
+        if (speechService != null) {
+            speechService.stop();
+        }
+    }
+
     // Terminate Vosk service
     public void onDestroy() {
         if (speechService != null) {
@@ -173,9 +180,6 @@ public class VoskSTT implements org.vosk.android.RecognitionListener {
                 listener.onVoskError(e);
             }
         }
-
-        // Restart listening for next utterance
-        recognizeMicrophone();
     }
 
 

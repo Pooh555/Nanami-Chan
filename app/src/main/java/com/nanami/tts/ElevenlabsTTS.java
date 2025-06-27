@@ -3,10 +3,10 @@ package com.nanami.tts;
 import android.content.Context;
 import android.media.AudioAttributes;
 import android.media.MediaPlayer;
-import android.util.Log;
+import android.util.Log; // Using Android's Log for consistency
 
 import androidx.annotation.OptIn;
-import androidx.media3.common.util.UnstableApi;
+import androidx.media3.common.util.UnstableApi; // Keep this annotation if it's relevant to your project
 
 import com.nanami.keys.API_keys;
 
@@ -31,19 +31,25 @@ public class ElevenlabsTTS {
     private MediaPlayer mediaPlayer;
     private static ElevenlabsTTS elevenlabsInstance;
 
+    // Define an interface for callbacks when speech completes or errors
+    public interface SpeechCompletionListener {
+        void onSpeechFinished();
+        void onSpeechError(Exception e);
+    }
+
     // Get instance
     public static ElevenlabsTTS getInstance() {
         if (elevenlabsInstance == null) {
             elevenlabsInstance = new ElevenlabsTTS();
         }
-
         return elevenlabsInstance;
     }
 
     // Elevenlabs constructor
     @OptIn(markerClass = UnstableApi.class)
     public ElevenlabsTTS() {
-        androidx.media3.common.util.Log.d(TAG, "Elevenlabs TTS model is loaded successfully.");
+        // Using Android's Log for consistency
+        Log.d(TAG, "Elevenlabs TTS model is loaded successfully.");
     }
 
     // Launch Elevenlabs service
@@ -63,14 +69,14 @@ public class ElevenlabsTTS {
         return matcher.replaceAll("").trim();
     }
 
-    // Speak the text
     @OptIn(markerClass = UnstableApi.class)
-    public void speak(Context context, String textToSpeak) {
-        // Launch a parallel thread to handle TTS
+    public void speak(Context context, String textToSpeak, SpeechCompletionListener listener) {
+        // Launch a parallel thread to handle TTS network request and audio playback
         new Thread(() -> {
-            // Clean the text
             String cleanedText = cleanTextForTTS(textToSpeak);
             JSONObject requestBody = new JSONObject();
+            HttpURLConnection urlConnection = null;
+            InputStream inputStream = null;
 
             try {
                 // Initialize a request to the Elevenlabs service
@@ -86,33 +92,52 @@ public class ElevenlabsTTS {
                 Log.d(TAG, "Attempting to speak: " + textToSpeak);
 
                 // Send the request body to the Elevenlabs server
-                HttpURLConnection urlConnection = getHttpURLConnection();
+                urlConnection = getHttpURLConnection();
 
                 try (OutputStream os = urlConnection.getOutputStream()) {
                     byte[] input = requestBody.toString().getBytes(StandardCharsets.UTF_8);
                     os.write(input, 0, input.length);
                 }
 
-                // Retrieve the respond from the Elevenlabs server
+                // Retrieve the response from the Elevenlabs server
                 int responseCode = urlConnection.getResponseCode();
 
                 // Play the audio
                 if (responseCode == HttpURLConnection.HTTP_OK) {
-                    try (InputStream is = urlConnection.getInputStream()) {
-                        playAudioStream(is, context);
-                    }
+                    inputStream = urlConnection.getInputStream();
+                    // Pass the listener to playAudioStream
+                    playAudioStream(inputStream, context, listener);
                 } else {
                     Log.e(TAG, "Elevenlabs API request failed with code: " + responseCode);
 
+                    String errorResponse;
+
                     try (BufferedInputStream bis = new BufferedInputStream(urlConnection.getErrorStream())) {
                         java.util.Scanner s = new java.util.Scanner(bis).useDelimiter("\\A");
-                        String error = s.hasNext() ? s.next() : "";
-
-                        Log.e(TAG, "Elevenlabs API error response: " + error);
+                        errorResponse = s.hasNext() ? s.next() : "";
+                        Log.e(TAG, "Elevenlabs API error response: " + errorResponse);
+                    }
+                    if (listener != null) {
+                        listener.onSpeechError(new IOException("Elevenlabs API request failed: " + responseCode + " - " + errorResponse));
                     }
                 }
             } catch (JSONException | IOException e) {
                 Log.e(TAG, "Error in Elevenlabs TTS speak method", e);
+                if (listener != null) {
+                    listener.onSpeechError(e);
+                }
+            } finally {
+                // Ensure streams and connections are closed
+                try {
+                    if (inputStream != null) {
+                        inputStream.close();
+                    }
+                } catch (IOException e) {
+                    Log.e(TAG, "Error closing input stream", e);
+                }
+                if (urlConnection != null) {
+                    urlConnection.disconnect();
+                }
             }
         }).start();
     }
@@ -133,52 +158,63 @@ public class ElevenlabsTTS {
         return urlConnection;
     }
 
-    // Play audio
-    public void playAudioStream(InputStream audioStream, Context context) {
+    /// Plays an audio stream using MediaPlayer.
+    public void playAudioStream(InputStream audioStream, Context context, SpeechCompletionListener listener) {
+        File tempMp3 = null;
         try {
             // Create a temporary file to store the audio stream
-            File tempMp3 = File.createTempFile("temp_elevenlabs_audio", ".mp3", context.getCacheDir());
-
+            tempMp3 = File.createTempFile("temp_elevenlabs_audio", ".mp3", context.getCacheDir());
             tempMp3.deleteOnExit(); // Delete when the program terminates
 
-            // Read the temp_elevenlabs_audio
+            // Read the audio stream into the temporary file
             try (FileOutputStream fos = new FileOutputStream(tempMp3)) {
                 byte[] buffer = new byte[1024];
                 int len;
-
                 while ((len = audioStream.read(buffer)) != -1) {
                     fos.write(buffer, 0, len);
                 }
             }
 
+            // Initialize MediaPlayer if it's null or reset it if it's already in use
             if (mediaPlayer == null) {
-                // Set up listener for when playback is complete
                 mediaPlayer = new MediaPlayer();
-
-                mediaPlayer.setOnCompletionListener(mp -> {
-                    mp.reset(); // Reset for next playback
-
-                    // Delete temporary file after playback
-                    if (!tempMp3.delete()) {
-                        Log.e(TAG, "Failed to delete the temporary audio file.");
-                    }
-
-                    Log.d(TAG, "Audio playback completed and temporary file deleted.");
-                });
-                mediaPlayer.setOnErrorListener((mp, what, extra) -> {
-                    Log.e(TAG, "MediaPlayer error: what=" + what + ", extra=" + extra);
-                    mp.reset();
-
-                    // Delete temporary file after playback
-                    if (!tempMp3.delete()) {
-                        Log.e(TAG, "Failed to delete the temporary audio file.");
-                    }
-
-                    return false;
-                });
             } else {
                 mediaPlayer.reset(); // Reset if already in use
             }
+
+            // Set up listener for when playback is complete
+            final File finalTempMp3 = tempMp3;
+
+            mediaPlayer.setOnCompletionListener(mp -> {
+                mp.reset(); // Reset for next playback
+
+                // Delete temporary file after playback
+                if (!finalTempMp3.delete()) {
+                    Log.e(TAG, "Failed to delete the temporary audio file.");
+                }
+
+                Log.d(TAG, "Audio playback completed and temporary file deleted.");
+
+                if (listener != null) {
+                    listener.onSpeechFinished(); // Notify listener
+                }
+            });
+
+            // Set up listener for playback errors
+            mediaPlayer.setOnErrorListener((mp, what, extra) -> {
+                Log.e(TAG, "MediaPlayer error: what=" + what + ", extra=" + extra);
+                mp.reset();
+
+                // Delete temporary file after playback
+                if (!finalTempMp3.delete()) {
+                    Log.e(TAG, "Failed to delete the temporary audio file.");
+                }
+                if (listener != null) {
+                    listener.onSpeechError(new Exception("MediaPlayer error: what=" + what + ", extra=" + extra)); // Notify listener
+                }
+
+                return false; // Return false to indicate that the error was not handled
+            });
 
             // Set the data source from the temporary file
             mediaPlayer.setDataSource(tempMp3.getAbsolutePath());
@@ -189,22 +225,31 @@ public class ElevenlabsTTS {
                     .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
                     .build());
 
-            mediaPlayer.prepare();
-            mediaPlayer.start();
+            mediaPlayer.prepare(); // Prepares the media player for playback
+            mediaPlayer.start();   // Starts playback
 
             Log.d(TAG, "Audio playback started.");
 
         } catch (IOException e) {
             Log.e(TAG, "Error playing MP3 audio: IOException", e);
+
+            if (listener != null) {
+                listener.onSpeechError(e);
+            }
         } catch (Exception e) {
             Log.e(TAG, "General error playing MP3 audio", e);
+
+            if (listener != null) {
+                listener.onSpeechError(e);
+            }
         } finally {
+            // Ensure the audio stream is closed regardless of success or failure
             try {
                 if (audioStream != null) {
                     audioStream.close();
                 }
             } catch (IOException e) {
-                Log.e(TAG, "Error closing audio stream", e);
+                Log.e(TAG, "Error closing audio stream in finally block", e);
             }
         }
     }
@@ -213,7 +258,7 @@ public class ElevenlabsTTS {
     public void onDestroy() {
         if (mediaPlayer != null) {
             mediaPlayer.stop();
-            mediaPlayer.release();
+            mediaPlayer.release(); // Release MediaPlayer resources
             mediaPlayer = null;
 
             Log.d(TAG, "MediaPlayer resources released.");

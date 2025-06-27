@@ -149,20 +149,40 @@ public class MainActivity extends Activity implements VoskSTT.VoskSTTListener {
     public void onVoskFinalResult(String result) {
         runOnUiThread(() -> {
             Log.d(TAG, "Vosk Final Result received in MainActivity: " + result);
-            // Toast.makeText(this, "Vosk Heard: " + result, Toast.LENGTH_SHORT).show();
 
             // Input the Vosk result into Ollama
             if (ollamaModel != null && !result.isEmpty() && !result.equals("huh")) {
                 Log.d(TAG, "Received message from Vosk, attempting to generate response.");
 
-                ollamaModel.generateResponse(result, new Ollama.OllamaCallback() {
+                // Pause Vosk IMMEDIATELY. VoskSTT.onFinalResult will no longer restart it.
+                voskModel.onPause();
 
+                ollamaModel.generateResponse(result, new Ollama.OllamaCallback() {
                     @Override
                     public void onSuccess(String ollamaResponse) {
                         runOnUiThread(() -> {
                             Log.d(TAG, "Ollama Response: " + ollamaResponse);
                             // Toast.makeText(MainActivity.this, "Ollama said: " + ollamaResponse, Toast.LENGTH_LONG).show();
-                            elevenlabsModel.speak(MainActivity.this, ollamaResponse);
+
+                            // Speak the response and only restart Vosk AFTER speech is done
+                            elevenlabsModel.speak(MainActivity.this, ollamaResponse, new ElevenlabsTTS.SpeechCompletionListener() {
+                                @Override
+                                public void onSpeechFinished() {
+                                    runOnUiThread(() -> {
+                                        Log.d(TAG, "ElevenLabs speech finished. Resuming Vosk listening.");
+                                        voskModel.recognizeMicrophone(); // Resume listening here
+                                    });
+                                }
+
+                                @Override
+                                public void onSpeechError(Exception e) {
+                                    runOnUiThread(() -> {
+                                        Log.e(TAG, "ElevenLabs Speech Error: " + e.getMessage());
+                                        // Decide: Should Vosk restart even if speech failed? Usually yes.
+                                        voskModel.recognizeMicrophone();
+                                    });
+                                }
+                            });
                         });
                     }
 
@@ -171,12 +191,18 @@ public class MainActivity extends Activity implements VoskSTT.VoskSTTListener {
                         runOnUiThread(() -> {
                             Log.e(TAG, "Ollama Error: " + e.getMessage(), e);
                             // Toast.makeText(MainActivity.this, "Ollama Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                            // If Ollama has an error, immediately restart Vosk so the user can try again.
+                            voskModel.recognizeMicrophone();
                         });
                     }
                 });
             } else {
-                Log.e(TAG, "Input speech is invalid.");
-                // Toast.makeText(this, "Input speech is invalid.", Toast.LENGTH_SHORT).show();
+                Log.e(TAG, "Input speech is invalid or 'huh'. Vosk should ideally remain active or be restarted if paused by default.");
+                // If the input is invalid or "huh", and Vosk was perhaps paused by onPause(),
+                // you might want to ensure it's listening again for the next user input.
+                // If onVoskFinalResult is only called for valid results, this branch might not need a Vosk restart.
+                // If it could be called even for "silent" or "invalid" results that don't go to Ollama,
+                // then you might want: voskModel.recognizeMicrophone(); here too.
             }
         });
     }
