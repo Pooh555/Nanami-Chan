@@ -2,7 +2,7 @@ package com.nanami.stt;
 
 import android.app.Activity;
 import android.content.Context;
-import android.widget.Toast;
+// import android.widget.Toast;
 
 import org.json.JSONObject;
 import org.vosk.Model;
@@ -74,7 +74,7 @@ public class VoskSTT implements org.vosk.android.RecognitionListener {
                         }
 
                         recognizeMicrophone();  // Start listening
-                        Toast.makeText(context, "Vosk STT started listening!", Toast.LENGTH_SHORT).show();
+                        // Toast.makeText(context, "Vosk STT started listening!", Toast.LENGTH_SHORT).show();
                     });
                 },
                 (e) -> {
@@ -82,7 +82,7 @@ public class VoskSTT implements org.vosk.android.RecognitionListener {
 
                     // Display a pop-up message
                     ((Activity) context).runOnUiThread(() -> {
-                        Toast.makeText(context, "Failed to unpack model: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                        // Toast.makeText(context, "Failed to unpack model: " + e.getMessage(), Toast.LENGTH_LONG).show();
 
                         if (listener != null) {
                             listener.onVoskError(e); // Notify listener about the error

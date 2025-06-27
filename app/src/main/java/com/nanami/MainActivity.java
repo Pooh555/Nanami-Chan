@@ -11,7 +11,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowInsets;
 import android.view.WindowInsetsController;
-import android.widget.Toast;
+// import android.widget.Toast;
 
 import androidx.annotation.OptIn;
 import androidx.media3.common.util.UnstableApi;
@@ -149,7 +149,7 @@ public class MainActivity extends Activity implements VoskSTT.VoskSTTListener {
     public void onVoskFinalResult(String result) {
         runOnUiThread(() -> {
             Log.d(TAG, "Vosk Final Result received in MainActivity: " + result);
-            Toast.makeText(this, "Vosk Heard: " + result, Toast.LENGTH_SHORT).show();
+            // Toast.makeText(this, "Vosk Heard: " + result, Toast.LENGTH_SHORT).show();
 
             // Input the Vosk result into Ollama
             if (ollamaModel != null && !result.isEmpty() && !result.equals("huh")) {
@@ -161,7 +161,7 @@ public class MainActivity extends Activity implements VoskSTT.VoskSTTListener {
                     public void onSuccess(String ollamaResponse) {
                         runOnUiThread(() -> {
                             Log.d(TAG, "Ollama Response: " + ollamaResponse);
-                            Toast.makeText(MainActivity.this, "Ollama said: " + ollamaResponse, Toast.LENGTH_LONG).show();
+                            // Toast.makeText(MainActivity.this, "Ollama said: " + ollamaResponse, Toast.LENGTH_LONG).show();
                             elevenlabsModel.speak(MainActivity.this, ollamaResponse);
                         });
                     }
@@ -170,13 +170,13 @@ public class MainActivity extends Activity implements VoskSTT.VoskSTTListener {
                     public void onError(Exception e) {
                         runOnUiThread(() -> {
                             Log.e(TAG, "Ollama Error: " + e.getMessage(), e);
-                            Toast.makeText(MainActivity.this, "Ollama Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                            // Toast.makeText(MainActivity.this, "Ollama Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
                         });
                     }
                 });
             } else {
                 Log.e(TAG, "Input speech is invalid.");
-                Toast.makeText(this, "Input speech is invalid.", Toast.LENGTH_SHORT).show();
+                // Toast.makeText(this, "Input speech is invalid.", Toast.LENGTH_SHORT).show();
             }
         });
     }

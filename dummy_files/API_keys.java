@@ -3,7 +3,7 @@ package com.nanami.keys;
 
 public interface  API_keys {
     // Ollama
-    public static final String OLLAMA_MODEL_NAME = "llama3:latest";
+    public static final String OLLAMA_MODEL_NAME = "llama3.2:1b";
     public static final String PERSONALITY = "Nanami Ousaka";
     public static final String OLLAMA_API_URL = "";
 
