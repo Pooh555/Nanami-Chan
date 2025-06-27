@@ -59,3 +59,13 @@ chmod +x build.sh
 ```
 ./gradlew installDebug
 ```
+
+<p>Install and run the 
+  <a href="https://github.com/Pooh555/Nanami-Server" target="_blank">proxy server
+  </a>
+  to be able to access Ollama.
+  <br></br>
+  Make sure that both your server and client are in the same network, and can access the IP of each other.
+</p>
+
+
