@@ -91,6 +91,7 @@ public class Ollama extends Model {
 
                     // Define connection's attributes
                     connection = (HttpURLConnection) url.openConnection();
+                    
                     connection.setConnectTimeout(5000);     // Connection's timeout: 5000 ms
                     connection.setReadTimeout(60000);  // Response wait time timeout: 60000 ms
                     connection.setRequestMethod("POST");    // Send a POST request to the server
