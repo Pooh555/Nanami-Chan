@@ -84,7 +84,7 @@ public class Ollama extends Model {
                HttpURLConnection connection = null;
 
                try {
-                    URI uri = new URI(API_keys.OLLAMA_API_URL);
+                    URI uri = new URI(API_keys.OLLAMA_WRAPPER_URL);
                     URL url = uri.toURL();
 
                     Log.d(TAG, "Attempting to connect to " + url);
@@ -93,7 +93,7 @@ public class Ollama extends Model {
                     connection = (HttpURLConnection) url.openConnection();
                     
                     connection.setConnectTimeout(5000);     // Connection's timeout: 5000 ms
-                    connection.setReadTimeout(60000);  // Response wait time timeout: 60000 ms
+                    connection.setReadTimeout(180000);  // Response wait time timeout: 60000 ms
                     connection.setRequestMethod("POST");    // Send a POST request to the server
                     connection.setRequestProperty("Content-Type", "application/json; utf-8");  // Use utf-8
                     connection.setRequestProperty("Accept", "application/json");     // Use JSON
@@ -145,7 +145,7 @@ public class Ollama extends Model {
 
                os.write(input, 0, input.length);
           } catch (IOException e) {
-               Log.e(TAG, "Failed to write request body to Ollama. Is the server running and accessible? Attempted to access " + API_keys.OLLAMA_API_URL);
+               Log.e(TAG, "Failed to write request body to Ollama. Is the server running and accessible? Attempted to access " + API_keys.OLLAMA_WRAPPER_URL);
           }
 
           // Retrieving a response from the model, and convert to string
