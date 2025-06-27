@@ -139,7 +139,7 @@ public class VoskSTT implements org.vosk.android.RecognitionListener {
 
                 // Reset timer
                 handler.removeCallbacks(forceStopRunnable);
-                handler.postDelayed(forceStopRunnable, 2000);
+                handler.postDelayed(forceStopRunnable, 1000);
             }
         } catch (Exception e) {
             Log.e(TAG, "Failed to parse intermediate result: " + e.getMessage());
@@ -214,7 +214,7 @@ public class VoskSTT implements org.vosk.android.RecognitionListener {
                     Log.d(TAG, "Forcing speechService stop to trigger final result");
                     speechService.stop(); // This triggers onFinalResult
                 }
-            }, 2000); // Delay in milliseconds
+            }, 1000); // Delay in milliseconds
         } catch (IOException e) {
             Log.e(TAG, "Error starting microphone recognition: " + e.getMessage());
 
