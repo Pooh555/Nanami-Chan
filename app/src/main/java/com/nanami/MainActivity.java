@@ -1,5 +1,7 @@
 package com.nanami;
 
+import com.nanami.keys.API_keys;
+
 import android.app.Activity;
 import android.opengl.GLSurfaceView;
 import android.os.Build;
@@ -20,8 +22,6 @@ public class MainActivity extends Activity {
     private GLSurfaceView glSurfaceView;
     private GLRenderer glRenderer;
     private Ollama ollamaModel;
-    private final String modelName = "llama3:latest";
-    private final String personality = "Nanami Osaka";
     private VoskSTT voskModel;
     private ElevenlabsTTS elevenlabsModel;
 
@@ -64,7 +64,7 @@ public class MainActivity extends Activity {
         voskModel.onStart(this);
         elevenlabsModel = ElevenlabsTTS.getInstance();
         elevenlabsModel.onStart(this);
-        ollamaModel = Ollama.getInstance(this, modelName, personality);
+        ollamaModel = Ollama.getInstance(this, API_keys.OLLAMA_MODEL_NAME, API_keys.PERSONALITY);
         ollamaModel.onStart(this);
     }
 
@@ -106,7 +106,7 @@ public class MainActivity extends Activity {
         LAppDelegate.getInstance().onDestroy(); // Terminate Live2D process
         VoskSTT.getInstance(this).onDestroy();  // Terminate STT process
         ElevenlabsTTS.getInstance().onDestroy();    // Terminate TTS process
-        Ollama.getInstance(this, modelName, personality).onDestroy();   // Terminate LLM process
+        Ollama.getInstance(this, API_keys.OLLAMA_MODEL_NAME, API_keys.PERSONALITY).onDestroy();   // Terminate LLM process
     }
 
     @Override

@@ -19,7 +19,7 @@ public class Model {
     protected final String TAG = "LLM_wrapper";
     protected String modelName;
     protected String modelPersonality;
-    protected String personalityPath = "personalities/";
+    protected String personalityPath = "personalities";
     protected List<JSONObject> conversationHistory;
 
     // Model constructor
@@ -45,11 +45,11 @@ public class Model {
 
         switch (personalityIdentifier) {
             case "Kita Ikuyo":
-                fileName = personalityPath + "kita_ikuyo.txt";
+                fileName = personalityPath + "/kita_ikuyo.txt";
                 Log.d(TAG, "Attempting to load the LLM's personality from " + "\"" + fileName + "\"");
                 break;
-            case "Nanami Osaka":
-                fileName = personalityPath + "nanami_osaka.txt";
+            case "Nanami Ousaka":
+                fileName = personalityPath + "/nanami_osaka.txt";
                 Log.d(TAG, "Attempting to load the LLM's personality from " + "\"" + fileName + "\"");
                 break;
             default:
@@ -77,7 +77,7 @@ public class Model {
     }
 
     public void saveConversationHistory() {
-        String historyPath = "./conversation_history";
+        String historyPath = "conversation_history";
         int count = 1;
 
         // Remove past chat history
