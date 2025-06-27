@@ -47,8 +47,8 @@ public class ElevenlabsTTS {
     }
 
     // Launch Elevenlabs service
-    public void onStart(Context context) {
-        speak("Hello! my name is Nanami Osaka.", context);
+    public void onStart() {
+        Log.d(TAG, "Elevenlabs service is initiated.");
     }
 
     // Clean text for TTS
@@ -65,7 +65,7 @@ public class ElevenlabsTTS {
 
     // Speak the text
     @OptIn(markerClass = UnstableApi.class)
-    public void speak(String textToSpeak, Context context) {
+    public void speak(Context context, String textToSpeak) {
         // Launch a parallel thread to handle TTS
         new Thread(() -> {
             // Clean the text
