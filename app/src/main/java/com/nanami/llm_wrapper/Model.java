@@ -20,6 +20,7 @@ public class Model {
     protected String modelName;
     protected String modelPersonality;
     protected String personalityPath = "personalities";
+    private final String conversationHistoryPath = "conversation_history";
     protected List<JSONObject> conversationHistory;
 
     // Model constructor
@@ -77,22 +78,22 @@ public class Model {
         }
     }
 
-    public void saveConversationHistory() {
-        String historyPath = "conversation_history";
+    public void saveConversationHistory(Context context) {
+        File historyDir = new File(context.getFilesDir(), conversationHistoryPath);
         int count = 1;
 
         // Remove past chat history
-        cleanDirectory(historyPath);
+        cleanAndCreateDirectory(historyDir);
 
         for (JSONObject message : this.conversationHistory) {
             String jsonString = message.toString();
+            File outputFile = new File(historyDir, "message" + count + ".json");
 
-            try (FileWriter file = new FileWriter(
-                    historyPath + "/message" + count + ".json")) {
+            try (FileWriter file = new FileWriter(outputFile)) {
                 file.write(jsonString);
                 count++;
             } catch (IOException e) {
-                Log.e(TAG, "Failed to save the conversation history:" + e.getMessage());
+                Log.e(TAG, "Failed to save the conversation history to " + outputFile.getAbsolutePath() + ": " + e.getMessage());
             }
         }
     }
@@ -107,32 +108,46 @@ public class Model {
     }
 
     // Remove all files in a directory
-    private void cleanDirectory(String directoryPath) {
-        File folder = new File(directoryPath);
+    private void cleanAndCreateDirectory(File directory) {
+        if (directory.exists()) {
+            if (directory.isDirectory()) {
+                File[] files = directory.listFiles();
 
-        if (folder.exists() && folder.isDirectory()) {
-            File[] files = folder.listFiles();
-
-            if (files != null) {
-                for (File file : files) {
-                    if (file.isFile()) {
-                        try {
+                if (files != null) {
+                    for (File file : files) {
+                        if (file.isFile()) {
                             if (!file.delete()) {
-                                Log.e(TAG, "Failed to clear the conversation history directory." + directoryPath);
+                                Log.e(TAG, "Failed to delete file: " + file.getAbsolutePath());
+                            } else {
+                                Log.d(TAG, "Deleted file: " + file.getAbsolutePath());
                             }
-                        } finally {
-                            Log.e(TAG, "Cleared past conversation history.");
                         }
                     }
                 }
+                Log.d(TAG, "Cleared past conversation history from " + directory.getAbsolutePath());
+            } else {
+                Log.e(TAG, "Path exists but is not a directory: " + directory.getAbsolutePath());
+
+                // Attempt to delete the non-directory file/folder if it's in the way
+                if (!directory.delete()) {
+                    Log.e(TAG, "Failed to delete non-directory item: " + directory.getAbsolutePath());
+                }
             }
         } else {
-            Log.e(TAG, "Folder does not exist or is not a directory: " + directoryPath);
+            Log.d(TAG, "Directory does not exist: " + directory.getAbsolutePath());
+
+            // Create new directory
+            if (directory.mkdirs()) {
+                Log.d(TAG, "Created directory: " + directory.getAbsolutePath());
+            } else {
+                Log.e(TAG, "Failed to create directory: " + directory.getAbsolutePath());
+            }
+
         }
     }
 
     // Terminate the LLM process
-    public void onDestroy(){
-        saveConversationHistory();  // Save the conversation history
+    public void onDestroy(Context context){
+        saveConversationHistory(context);  // Save the conversation history
     }
 }

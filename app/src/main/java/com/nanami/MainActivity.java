@@ -116,7 +116,7 @@ public class MainActivity extends Activity implements VoskSTT.VoskSTTListener {
         LAppDelegate.getInstance().onDestroy(); // Terminate Live2D process
         VoskSTT.getInstance(this).onDestroy();  // Terminate STT process
         ElevenlabsTTS.getInstance().onDestroy();    // Terminate TTS process
-        Ollama.getInstance(this, API_keys.OLLAMA_MODEL_NAME, API_keys.PERSONALITY).onDestroy();   // Terminate LLM process
+        Ollama.getInstance(this, API_keys.OLLAMA_MODEL_NAME, API_keys.PERSONALITY).onDestroy(this);   // Terminate LLM process
     }
 
     @Override
