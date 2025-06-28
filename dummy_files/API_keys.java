@@ -11,5 +11,4 @@ public interface  API_keys {
     public static final String ELEVENLABS_API_KEY = "";
     public static final String ELEVENLABS_API_URL_BASE = "https://api.elevenlabs.io/v1/text-to-speech/";
     public static final String VOICE_ID = "PoHUWWWMHFrA8z7Q88pu";
-
 }
