@@ -26,6 +26,7 @@ public class VoskSTT implements org.vosk.android.RecognitionListener {
     private static VoskSTT voskInstance;
     private VoskSTTListener listener;
     private boolean finalizationScheduled = false;
+    private final int endOfSpeechWaitTime = 500;
     private String lastValidResult = null;
 
     private final android.os.Handler handler = new android.os.Handler(android.os.Looper.getMainLooper());
@@ -146,7 +147,7 @@ public class VoskSTT implements org.vosk.android.RecognitionListener {
 
                 // Reset timer
                 handler.removeCallbacks(forceStopRunnable);
-                handler.postDelayed(forceStopRunnable, 1000);
+                handler.postDelayed(forceStopRunnable, endOfSpeechWaitTime);
             }
         } catch (Exception e) {
             Log.e(TAG, "Failed to parse intermediate result: " + e.getMessage());
@@ -218,7 +219,7 @@ public class VoskSTT implements org.vosk.android.RecognitionListener {
                     Log.d(TAG, "Forcing speechService stop to trigger final result");
                     speechService.stop(); // This triggers onFinalResult
                 }
-            }, 1000); // Delay in milliseconds
+            }, endOfSpeechWaitTime); // Delay in milliseconds
         } catch (IOException e) {
             Log.e(TAG, "Error starting microphone recognition: " + e.getMessage());
 
@@ -239,6 +240,7 @@ public class VoskSTT implements org.vosk.android.RecognitionListener {
         }
     }
 
+    // Timeout
     @OptIn(markerClass = UnstableApi.class)
     @Override
     public void onTimeout() {
@@ -246,6 +248,7 @@ public class VoskSTT implements org.vosk.android.RecognitionListener {
         recognizeMicrophone();
     }
 
+    // Get the final result
     public String getLastValidResult() {
         return lastValidResult != null ? lastValidResult : "";
     }
