@@ -21,7 +21,7 @@
 
 <p>Available LLM models:
 
- -  Ollama: llama3:lasest (default)
+ -  Ollama
  
  Available personalities:
  
