@@ -62,8 +62,7 @@ public class MainActivity extends Activity implements VoskSTT.VoskSTTListener {
                     .setSystemBarsBehavior(WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
         }
 
-        voskModel = VoskSTT.getInstance(this);
-        voskModel.setListener(this);
+        onStart();
     }
 
     @Override
@@ -72,10 +71,23 @@ public class MainActivity extends Activity implements VoskSTT.VoskSTTListener {
 
         // Launch Live2D renderer, Vosk STT, Elevenlabs TTS and Ollama
         LAppDelegate.getInstance().onStart(this);
-        elevenlabsModel = ElevenlabsTTS.getInstance();
-        elevenlabsModel.onStart();
+        voskModel = VoskSTT.getInstance(this);
+        voskModel.setListener(this);
         ollamaModel = Ollama.getInstance(this, API_keys.OLLAMA_MODEL_NAME, API_keys.PERSONALITY);
         ollamaModel.onStart(this);
+        elevenlabsModel = ElevenlabsTTS.getInstance();
+        elevenlabsModel.onStart();
+
+        elevenlabsModel.setAudioLevelListener(new ElevenlabsTTS.AudioLevelListener() {
+            @Override
+            public void onAudioLevelUpdate(float level) {
+                // Pass the audio level to the Live2D application delegate
+                // Ensure LAppDelegate.getInstance() is not null
+                if (LAppDelegate.getInstance() != null) {
+                    LAppDelegate.getInstance().setLipSyncValue(level);
+                }
+            }
+        });
     }
 
     @Override

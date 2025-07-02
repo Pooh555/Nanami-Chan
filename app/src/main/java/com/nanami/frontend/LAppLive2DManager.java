@@ -51,8 +51,6 @@ public class LAppLive2DManager {
      * assets フォルダにあるモデルフォルダ名をセットする
      */
     public void setUpModel() {
-        // assetsフォルダの中にあるフォルダ名を全てクロールし、モデルが存在するフォルダを定義する。
-        // フォルダはあるが同名の.model3.jsonが見つからなかった場合はリストに含めない。
         modelDir.clear();
 
         final AssetManager assets = LAppDelegate.getInstance().getActivity().getResources().getAssets();
@@ -61,7 +59,6 @@ public class LAppLive2DManager {
             for (String subdir: root) {
                 String[] files = assets.list(subdir);
                 String target = subdir + ".model3.json";
-                // フォルダと同名の.model3.jsonがあるか探索する
                 for (String file : files) {
                     if (file.equals(target)) {
                         modelDir.add(subdir);
@@ -91,26 +88,22 @@ public class LAppLive2DManager {
             projection.loadIdentity();
 
             if (model.getModel().getCanvasWidth() > 1.0f && width < height) {
-                // 横に長いモデルを縦長ウィンドウに表示する際モデルの横サイズでscaleを算出する
                 model.getModelMatrix().setWidth(2.0f);
                 projection.scale(1.0f, (float) width / (float) height);
             } else {
                 projection.scale((float) height / (float) width, 1.0f);
             }
 
-            // 必要があればここで乗算する
             if (viewMatrix != null) {
                 viewMatrix.multiplyByMatrix(projection);
             }
 
-            // モデル1体描画前コール
             LAppDelegate.getInstance().getView().preModelDraw(model);
 
             model.update();
 
-            model.draw(projection);     // 参照渡しなのでprojectionは変質する
+            model.draw(projection);
 
-            // モデル1体描画後コール
             LAppDelegate.getInstance().getView().postModelDraw(model);
         }
     }
@@ -124,7 +117,9 @@ public class LAppLive2DManager {
     public void onDrag(float x, float y) {
         for (int i = 0; i < models.size(); i++) {
             LAppModel model = getModel(i);
-            model.setDragging(x, y);
+            if (model != null) { // Added null check here for safety
+                model.setDragging(x, y);
+            }
         }
     }
 
@@ -142,14 +137,12 @@ public class LAppLive2DManager {
         for (int i = 0; i < models.size(); i++) {
             LAppModel model = models.get(i);
 
-            // 頭をタップした場合表情をランダムで再生する
             if (model.hitTest(HitAreaName.HEAD.getId(), x, y)) {
                 if (DEBUG_LOG_ENABLE) {
                     LAppPal.printLog("hit area: " + HitAreaName.HEAD.getId());
                 }
                 model.setRandomExpression();
             }
-            // 体をタップした場合ランダムモーションを開始する
             else if (model.hitTest(HitAreaName.BODY.getId(), x, y)) {
                 if (DEBUG_LOG_ENABLE) {
                     LAppPal.printLog("hit area: " + HitAreaName.HEAD.getId());
@@ -166,7 +159,6 @@ public class LAppLive2DManager {
      */
     public void nextScene() {
         final int number = (currentModel + 1) % modelDir.size();
-
         changeScene(number);
     }
 
@@ -191,34 +183,23 @@ public class LAppLive2DManager {
         models.add(new LAppModel());
         models.get(0).loadAssets(modelPath, modelJsonName);
 
-        /*
-         * モデル半透明表示を行うサンプルを提示する。
-         * ここでUSE_RENDER_TARGET、USE_MODEL_RENDER_TARGETが定義されている場合
-         * 別のレンダリングターゲットにモデルを描画し、描画結果をテクスチャとして別のスプライトに張り付ける。
-         */
         LAppView.RenderingTarget useRenderingTarget;
         if (USE_RENDER_TARGET) {
-            // LAppViewの持つターゲットに描画を行う場合こちらを選択
             useRenderingTarget = LAppView.RenderingTarget.VIEW_FRAME_BUFFER;
         } else if (USE_MODEL_RENDER_TARGET) {
-            // 各LAppModelの持つターゲットに描画を行う場合こちらを選択
             useRenderingTarget = LAppView.RenderingTarget.MODEL_FRAME_BUFFER;
         } else {
-            // デフォルトのメインフレームバッファへレンダリングする(通常)
             useRenderingTarget = LAppView.RenderingTarget.NONE;
         }
 
         if (USE_RENDER_TARGET || USE_MODEL_RENDER_TARGET) {
-            // モデル個別にαを付けるサンプルとして、もう1体モデルを作成し少し位置をずらす。
             models.add(new LAppModel());
             models.get(1).loadAssets(modelPath, modelJsonName);
             models.get(1).getModelMatrix().translateX(0.2f);
         }
 
-        // レンダリングターゲットを切り替える
         LAppDelegate.getInstance().getView().switchRenderingTarget(useRenderingTarget);
 
-        // 別レンダリング先を選択した際の背景クリア色
         float[] clearColor = {0.0f, 0.0f, 0.0f};
         LAppDelegate.getInstance().getView().setRenderingTargetClearColor(clearColor[0], clearColor[1], clearColor[2]);
     }
@@ -235,6 +216,18 @@ public class LAppLive2DManager {
         }
         return null;
     }
+
+    /**
+     * New method for LAppDelegate to pass lip-sync values
+     * @return The LAppModel instance at the currentModelIndex, or null if no model is active.
+     */
+    public LAppModel getModel() {
+        if (currentModel >= 0 && currentModel < models.size()) {
+            return models.get(currentModel);
+        }
+        return null; // No model is currently active or index is out of bounds
+    }
+
 
     /**
      * シーンインデックスを返す
@@ -255,6 +248,24 @@ public class LAppLive2DManager {
             return 0;
         }
         return models.size();
+    }
+
+    /**
+     * Receives lip-sync value from external sources (e.g., LAppDelegate)
+     * and passes it to the currently active LAppModel.
+     * @param value The desired mouth open value (typically 0.0 to 1.0).
+     */
+    public void setLipSyncValue(float value) {
+        // Assuming you have only one main model or want to apply to the currently active one
+        // The getModel() method (without parameters) should return the current active model.
+        LAppModel currentActiveModel = getModel(); // Using your existing getModel() that returns 'currentModel'
+
+        if (currentActiveModel != null) {
+            currentActiveModel.setLipSyncValue(value);
+        } else {
+            // Optional: Log a warning if no model is active, or if it's too early in the lifecycle.
+            LAppPal.printLog("LAppLive2DManager: No active model to set lip-sync value on.");
+        }
     }
 
     /**
@@ -288,6 +299,8 @@ public class LAppLive2DManager {
 
     private LAppLive2DManager() {
         setUpModel();
+        // Ensure that changeScene(0) is called after models are set up,
+        // which it is, so currentModel will be valid.
         changeScene(0);
     }
 

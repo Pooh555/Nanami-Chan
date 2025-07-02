@@ -9,6 +9,7 @@ package com.nanami.frontend;
 
 import com.nanami.LAppDefine;
 import com.live2d.sdk.cubism.framework.CubismDefaultParameterId.ParameterId;
+import com.live2d.sdk.cubism.framework.CubismDefaultParameterId; // Keep this import for other CubismDefaultParameterId usage if any.
 import com.live2d.sdk.cubism.framework.CubismFramework;
 import com.live2d.sdk.cubism.framework.CubismModelSettingJson;
 import com.live2d.sdk.cubism.framework.ICubismModelSetting;
@@ -36,7 +37,16 @@ import java.util.Map;
 import java.util.Random;
 
 public class LAppModel extends CubismUserModel {
+    // --- Lip-sync smoothing fields ---
+    private float currentLipSyncValue = 0.0f; // Stores the current smoothed value
+    private float targetLipSyncValue = 0.0f;  // Stores the target value from audio
+    private static final float LIP_SYNC_SMOOTH_FACTOR = 0.15f; // Adjust for desired smoothness (0.0 to 1.0)
+    // ---------------------------------
+
     public LAppModel() {
+        // Explicitly set lipSync to false to use external control
+        lipSync = false;
+
         if (LAppDefine.MOC_CONSISTENCY_VALIDATION_ENABLE) {
             mocConsistency = true;
         }
@@ -162,16 +172,36 @@ public class LAppModel extends CubismUserModel {
             physics.evaluate(model, deltaTimeSeconds);
         }
 
-        // Lip Sync Setting
-        if (lipSync) {
-            // リアルタイムでリップシンクを行う場合、システムから音量を取得して0~1の範囲で値を入力します
-            float value = 0.0f;
+        // --- UPDATED: Apply smoothing to lip-sync value ---
+        // Smoothly interpolate the current value towards the target value
+        this.currentLipSyncValue += (this.targetLipSyncValue - this.currentLipSyncValue) * LIP_SYNC_SMOOTH_FACTOR;
 
-            for (int i = 0; i < lipSyncIds.size(); i++) {
-                CubismId lipSyncId = lipSyncIds.get(i);
-                model.addParameterValue(lipSyncId, value, 0.8f);
-            }
+        // Ensure the current value stays within bounds after smoothing
+        float clampedSmoothedValue = Math.max(0.0f, Math.min(1.0f, this.currentLipSyncValue));
+
+        // Get the CubismId for the mouth open Y parameter by its string name.
+        // This is the correct way to get the parameter ID if CubismDefaultParameterId.ParamMouthOpenY is not directly available.
+        CubismId mouthOpenId = CubismFramework.getIdManager().getId("ParamMouthOpenY");
+
+        // Set the Mouth Open Y parameter with the smoothed value
+        // Ensure the model is available before setting parameters
+        if (this.getModel() != null) {
+            this.getModel().setParameterValue(mouthOpenId, clampedSmoothedValue);
         }
+        // ---------------------------------------------------
+
+        // IMPORTANT: The original 'Lip Sync Setting' block is now replaced/disabled
+        // If 'lipSync' boolean is false (as set in constructor), this block will be skipped.
+        // It's crucial not to have conflicting lip-sync logic here.
+        // if (lipSync) {
+        //     // リアルタイムでリップシンクを行う場合、システムから音量を取得して0~1の範囲で値を入力します
+        //     float value = 0.0f; // This would override our external control
+        //
+        //     for (int i = 0; i < lipSyncIds.size(); i++) {
+        //         CubismId lipSyncId = lipSyncIds.get(i);
+        //         model.addParameterValue(lipSyncId, value, 0.8f);
+        //     }
+        // }
 
         // Pose Setting
         if (pose != null) {
@@ -179,6 +209,15 @@ public class LAppModel extends CubismUserModel {
         }
 
         model.update();
+    }
+
+    /**
+     * Sets the lip-sync value (mouth open Y parameter) of the Live2D model.
+     * @param value The desired mouth open target value, typically 0.0 (closed) to 1.0 (open).
+     */
+    public void setLipSyncValue(float value) {
+        // We now set the TARGET value. The actual parameter will be smoothed towards this.
+        this.targetLipSyncValue = Math.max(0.0f, Math.min(1.0f, value)); // Clamp the target value
     }
 
     /**
@@ -312,9 +351,9 @@ public class LAppModel extends CubismUserModel {
 
         // キャッシュ変数の定義を避けるために、multiplyByMatrix()ではなく、multiply()を使用する。
         CubismMatrix44.multiply(
-            modelMatrix.getArray(),
-            matrix.getArray(),
-            matrix.getArray()
+                modelMatrix.getArray(),
+                matrix.getArray(),
+                matrix.getArray()
         );
 
         this.<CubismRendererAndroid>getRenderer().setMvpMatrix(matrix);
@@ -523,6 +562,8 @@ public class LAppModel extends CubismUserModel {
         }
 
         // LipSyncIds
+        // IMPORTANT: We still load these IDs even if we manually control lip-sync.
+        // This is because the 'setEffectIds' call in motion loading might still use them for other effects.
         int lipSyncIdCount = modelSetting.getLipSyncParameterCount();
         for (int i = 0; i < lipSyncIdCount; i++) {
             lipSyncIds.add(modelSetting.getLipSyncParameterId(i));
@@ -618,7 +659,7 @@ public class LAppModel extends CubismUserModel {
             texturePath = modelHomeDirectory + texturePath;
 
             LAppTextureManager.TextureInfo texture =
-                LAppDelegate.getInstance()
+                    LAppDelegate.getInstance()
                             .getTextureManager()
                             .createTextureFromPngFile(texturePath);
             final int glTextureNumber = texture.id;

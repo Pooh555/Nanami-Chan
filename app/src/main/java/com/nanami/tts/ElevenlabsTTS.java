@@ -3,10 +3,10 @@ package com.nanami.tts;
 import android.content.Context;
 import android.media.AudioAttributes;
 import android.media.MediaPlayer;
-import android.util.Log; // Using Android's Log for consistency
+import android.util.Log;
 
 import androidx.annotation.OptIn;
-import androidx.media3.common.util.UnstableApi; // Keep this annotation if it's relevant to your project
+import androidx.media3.common.util.UnstableApi;
 
 import com.nanami.keys.API_keys;
 
@@ -22,6 +22,8 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -30,11 +32,21 @@ public class ElevenlabsTTS {
     private static final String TAG = "Elevenlabs";
     private MediaPlayer mediaPlayer;
     private static ElevenlabsTTS elevenlabsInstance;
+    private AudioLevelListener audioLevelListener;
+    private static final float LIP_SYNC_SCALER = 2.0f;
+    private static final float LIP_SYNC_THRESHOLD = 0.002f;
+    private static final float LIP_SYNC_BOOST = 1.0f;
+
 
     // Define an interface for callbacks when speech completes or errors
     public interface SpeechCompletionListener {
         void onSpeechFinished();
         void onSpeechError(Exception e);
+    }
+
+    // Send audio volume message to Live2D model (used for lip-sync)
+    public interface AudioLevelListener {
+        void onAudioLevelUpdate(float level);
     }
 
     // Get instance
@@ -58,7 +70,6 @@ public class ElevenlabsTTS {
     }
 
     // Clean text for TTS
-    @OptIn(markerClass = UnstableApi.class)
     private String cleanTextForTTS(String text) {
         // Clean the text for the model to speak e.g. removing *emotion emotion*
         Pattern pattern = Pattern.compile("\\*[^*]+\\*");
@@ -69,7 +80,12 @@ public class ElevenlabsTTS {
         return matcher.replaceAll("").trim();
     }
 
-    @OptIn(markerClass = UnstableApi.class)
+    // Sets the listener for audio level updates.
+    public void setAudioLevelListener(AudioLevelListener listener) {
+        this.audioLevelListener = listener;
+        Log.d(TAG, "AudioLevelListener set for ElevenlabsTTS.");
+    }
+
     public void speak(Context context, String textToSpeak, SpeechCompletionListener listener) {
         // Launch a parallel thread to handle TTS network request and audio playback
         new Thread(() -> {
@@ -150,7 +166,7 @@ public class ElevenlabsTTS {
 
         // POST the request to the server
         urlConnection.setRequestMethod("POST");
-        urlConnection.setRequestProperty("Accept", "audio/mpeg");
+        urlConnection.setRequestProperty("Accept", "audio/wav");
         urlConnection.setRequestProperty("xi-api-key", API_keys.ELEVENLABS_API_KEY);
         urlConnection.setRequestProperty("Content-Type", "application/json");
         urlConnection.setDoOutput(true);
@@ -158,92 +174,146 @@ public class ElevenlabsTTS {
         return urlConnection;
     }
 
-    /// Plays an audio stream using MediaPlayer.
+    // Plays an audio stream using MediaPlayer.
     public void playAudioStream(InputStream audioStream, Context context, SpeechCompletionListener listener) {
-        File tempMp3 = null;
+        File tempWavFile = null;
         try {
-            // Create a temporary file to store the audio stream
-            tempMp3 = File.createTempFile("temp_elevenlabs_audio", ".mp3", context.getCacheDir());
-            tempMp3.deleteOnExit(); // Delete when the program terminates
+            tempWavFile = File.createTempFile("temp_elevenlabs_audio", ".wav", context.getCacheDir()); // Save as WAV
+            tempWavFile.deleteOnExit();
 
-            // Read the audio stream into the temporary file
-            try (FileOutputStream fos = new FileOutputStream(tempMp3)) {
-                byte[] buffer = new byte[1024];
+            List<Float> amplitudeData = new ArrayList<>();
+
+            try (FileOutputStream fos = new FileOutputStream(tempWavFile)) {
+                // Skip WAV header (typical size is 44 bytes)
+                byte[] headerBuffer = new byte[44];
+                int bytesReadFromHeader = audioStream.read(headerBuffer);
+
+                if (bytesReadFromHeader < 44) {
+                    Log.e(TAG, "Failed to read WAV header or WAV is too short.");
+                    if (listener != null) {
+                        listener.onSpeechError(new IOException("Invalid WAV file: header missing or incomplete."));
+                    }
+                    return;
+                }
+
+                fos.write(headerBuffer); // Write header to temp file for playback
+
+                byte[] buffer = new byte[1024]; // Keep buffer size for reading
                 int len;
+
                 while ((len = audioStream.read(buffer)) != -1) {
                     fos.write(buffer, 0, len);
+
+                    // Process 16-bit PCM samples for amplitude
+                    long sumAbsoluteSamples = 0;
+                    int numSamples = 0;
+
+                    for (int i = 0; i < len - 1; i += 2) {
+                        short sample = (short) ((buffer[i + 1] << 8) | (buffer[i] & 0xFF));
+                        sumAbsoluteSamples += Math.abs(sample);
+                        numSamples++;
+                    }
+
+                    float currentRawAmplitude = 0.0f;
+
+                    if (numSamples > 0) {
+                        // Normalize by the maximum possible 16-bit signed value (32768)
+                        currentRawAmplitude = (float) sumAbsoluteSamples / (numSamples * 32768.0f);
+                    }
+
+                    float processedLevel = currentRawAmplitude;
+
+                    if (processedLevel < LIP_SYNC_THRESHOLD) {
+                        processedLevel = 0.0f;
+                    } else {
+                        processedLevel = (processedLevel - LIP_SYNC_THRESHOLD) * LIP_SYNC_SCALER + LIP_SYNC_BOOST;
+                        processedLevel = Math.min(1.0f, Math.max(0.0f, processedLevel));
+                    }
+
+                    amplitudeData.add(processedLevel);
                 }
             }
 
-            // Initialize MediaPlayer if it's null or reset it if it's already in use
             if (mediaPlayer == null) {
                 mediaPlayer = new MediaPlayer();
             } else {
-                mediaPlayer.reset(); // Reset if already in use
+                mediaPlayer.reset();
             }
 
-            // Set up listener for when playback is complete
-            final File finalTempMp3 = tempMp3;
+            final File finalTempWavFile = tempWavFile;
+            final List<Float> finalAmplitudeData = amplitudeData;
 
             mediaPlayer.setOnCompletionListener(mp -> {
-                mp.reset(); // Reset for next playback
-
-                // Delete temporary file after playback
-                if (!finalTempMp3.delete()) {
-                    Log.e(TAG, "Failed to delete the temporary audio file.");
-                }
-
                 Log.d(TAG, "Audio playback completed and temporary file deleted.");
 
                 if (listener != null) {
-                    listener.onSpeechFinished(); // Notify listener
+                    listener.onSpeechFinished();
+                }
+
+                if (audioLevelListener != null) {
+                    audioLevelListener.onAudioLevelUpdate(0.0f);
                 }
             });
 
-            // Set up listener for playback errors
             mediaPlayer.setOnErrorListener((mp, what, extra) -> {
-                Log.e(TAG, "MediaPlayer error: what=" + what + ", extra=" + extra);
-                mp.reset();
-
-                // Delete temporary file after playback
-                if (!finalTempMp3.delete()) {
-                    Log.e(TAG, "Failed to delete the temporary audio file.");
-                }
                 if (listener != null) {
-                    listener.onSpeechError(new Exception("MediaPlayer error: what=" + what + ", extra=" + extra)); // Notify listener
+                    listener.onSpeechError(new Exception("MediaPlayer error: what=" + what + ", extra=" + extra));
                 }
 
-                return false; // Return false to indicate that the error was not handled
+                if (audioLevelListener != null) {
+                    audioLevelListener.onAudioLevelUpdate(0.0f);
+                }
+                return false;
             });
 
-            // Set the data source from the temporary file
-            mediaPlayer.setDataSource(tempMp3.getAbsolutePath());
-
-            // Set audio attributes
+            mediaPlayer.setDataSource(tempWavFile.getAbsolutePath());
             mediaPlayer.setAudioAttributes(new AudioAttributes.Builder()
                     .setUsage(AudioAttributes.USAGE_MEDIA)
                     .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
                     .build());
 
-            mediaPlayer.prepare(); // Prepares the media player for playback
-            mediaPlayer.start();   // Starts playback
+            mediaPlayer.prepare();
+            mediaPlayer.start();
 
             Log.d(TAG, "Audio playback started.");
 
-        } catch (IOException e) {
-            Log.e(TAG, "Error playing MP3 audio: IOException", e);
+            new Thread(() -> {
+                long startTime = System.currentTimeMillis();
 
+                for (int i = 0; i < finalAmplitudeData.size(); i++) {
+                    if (!mediaPlayer.isPlaying()) {
+                        break;
+                    }
+
+                    float level = finalAmplitudeData.get(i);
+
+                    if (audioLevelListener != null) {
+                        audioLevelListener.onAudioLevelUpdate(level);
+                    }
+
+                    try {
+                        Thread.sleep(30);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        Log.e(TAG, "Amplitude thread interrupted", e);
+                    }
+                }
+                if (audioLevelListener != null && mediaPlayer != null && !mediaPlayer.isPlaying()) {
+                    audioLevelListener.onAudioLevelUpdate(0.0f);
+                }
+            }).start();
+
+        } catch (IOException e) {
+            Log.e(TAG, "Error playing WAV audio: IOException", e);
             if (listener != null) {
                 listener.onSpeechError(e);
             }
         } catch (Exception e) {
-            Log.e(TAG, "General error playing MP3 audio", e);
-
+            Log.e(TAG, "General error playing WAV audio", e);
             if (listener != null) {
                 listener.onSpeechError(e);
             }
         } finally {
-            // Ensure the audio stream is closed regardless of success or failure
             try {
                 if (audioStream != null) {
                     audioStream.close();

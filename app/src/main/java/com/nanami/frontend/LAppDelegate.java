@@ -146,6 +146,15 @@ public class LAppDelegate {
         }
     }
 
+    /**
+     * Receives lip-sync value from external sources (e.g., TTS) and passes it to the Live2D Manager.
+     * @param value The desired mouth open value (typically 0.0 to 1.0).
+     */
+    public void setLipSyncValue(float value) {
+        // Pass the lip-sync value to the Live2D Manager
+        LAppLive2DManager.getInstance().setLipSyncValue(value);
+    }
+
     // getter, setter群
     public Activity getActivity() {
         return activity;
