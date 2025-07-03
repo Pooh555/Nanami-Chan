@@ -129,11 +129,11 @@ public class LAppView implements AutoCloseable {
         fWidth = (float) gearTexture.width;
         fHeight = (float) gearTexture.height;
 
-        if (gearSprite == null) {
-            gearSprite = new LAppSprite(x, y, fWidth, fHeight, gearTexture.id, programId);
-        } else {
-            gearSprite.resize(x, y, fWidth, fHeight);
-        }
+//        if (gearSprite == null) {
+//            gearSprite = new LAppSprite(x, y, fWidth, fHeight, gearTexture.id, programId);
+//        } else {
+//            gearSprite.resize(x, y, fWidth, fHeight);
+//        }
 
         // 電源画像の読み込み
         LAppTextureManager.TextureInfo powerTexture = textureManager.createTextureFromPngFile(ResourcePath.ROOT.getPath() + ResourcePath.POWER_IMAGE.getPath());
@@ -168,12 +168,12 @@ public class LAppView implements AutoCloseable {
         int maxHeight = LAppDelegate.getInstance().getWindowHeight();
 
         backSprite.setWindowSize(maxWidth, maxHeight);
-        gearSprite.setWindowSize(maxWidth, maxHeight);
+        // gearSprite.setWindowSize(maxWidth, maxHeight);
         // powerSprite.setWindowSize(maxWidth, maxHeight);
 
         // UIと背景の描画
         backSprite.render();
-        gearSprite.render();
+        // gearSprite.render();
         // powerSprite.render();
 
         if (isChangedModel) {
@@ -339,9 +339,9 @@ public class LAppView implements AutoCloseable {
         live2DManager.onTap(x, y);
 
         // 歯車ボタンにタップしたか
-        if (gearSprite.isHit(pointX, pointY)) {
-            isChangedModel = true;
-        }
+//        if (gearSprite.isHit(pointX, pointY)) {
+//            isChangedModel = true;
+//        }
 
         // 電源ボタンにタップしたか
 //        if (powerSprite.isHit(pointX, pointY)) {
