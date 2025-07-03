@@ -144,11 +144,11 @@ public class LAppView implements AutoCloseable {
         fWidth = (float) powerTexture.width;
         fHeight = (float) powerTexture.height;
 
-        if (powerSprite == null) {
-            powerSprite = new LAppSprite(x, y, fWidth, fHeight, powerTexture.id, programId);
-        } else {
-            powerSprite.resize(x, y, fWidth, fHeight);
-        }
+//        if (powerSprite == null) {
+//            powerSprite = new LAppSprite(x, y, fWidth, fHeight, powerTexture.id, programId);
+//        } else {
+//            powerSprite.resize(x, y, fWidth, fHeight);
+//        }
 
         // 画面全体を覆うサイズ
         x = windowWidth * 0.5f;
@@ -169,12 +169,12 @@ public class LAppView implements AutoCloseable {
 
         backSprite.setWindowSize(maxWidth, maxHeight);
         gearSprite.setWindowSize(maxWidth, maxHeight);
-        powerSprite.setWindowSize(maxWidth, maxHeight);
+        // powerSprite.setWindowSize(maxWidth, maxHeight);
 
         // UIと背景の描画
         backSprite.render();
         gearSprite.render();
-        powerSprite.render();
+        // powerSprite.render();
 
         if (isChangedModel) {
             isChangedModel = false;
@@ -344,10 +344,10 @@ public class LAppView implements AutoCloseable {
         }
 
         // 電源ボタンにタップしたか
-        if (powerSprite.isHit(pointX, pointY)) {
-            // アプリを終了する
-            LAppDelegate.getInstance().deactivateApp();
-        }
+//        if (powerSprite.isHit(pointX, pointY)) {
+//            // アプリを終了する
+//            LAppDelegate.getInstance().deactivateApp();
+//        }
 
     }
 
