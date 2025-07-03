@@ -13,7 +13,6 @@ import org.vosk.android.StorageService;
 
 import java.io.IOException;
 
-import androidx.annotation.OptIn;
 import androidx.media3.common.util.Log;
 import androidx.media3.common.util.UnstableApi;
 
@@ -60,7 +59,6 @@ public class VoskSTT implements org.vosk.android.RecognitionListener {
     }
 
     // VoskSTT constructor
-    @OptIn(markerClass = UnstableApi.class)
     public VoskSTT(Context context) {
         // Load the Vosk STT model
         StorageService.unpack(context, "model-en-us", "model",
@@ -93,11 +91,10 @@ public class VoskSTT implements org.vosk.android.RecognitionListener {
     }
 
     // Launch Vosk service
-    @OptIn(markerClass = UnstableApi.class)
-    public void onStart() {
+    public void onStart(VoskSTTListener listener) {
         Log.d(TAG, "Vosk service is initiated.");
 
-        recognizeMicrophone();
+        setListener(listener);
     }
 
     // Stop vosk service temporary
@@ -121,7 +118,6 @@ public class VoskSTT implements org.vosk.android.RecognitionListener {
     }
 
     // Partial result
-    @OptIn(markerClass = UnstableApi.class)
     @Override
     public void onPartialResult(String hypothesis) {
         Log.d(TAG, "Partial Result: " + hypothesis);
@@ -133,7 +129,6 @@ public class VoskSTT implements org.vosk.android.RecognitionListener {
     }
 
     // Immediate Result
-    @OptIn(markerClass = UnstableApi.class)
     @Override
     public void onResult(String hypothesis) {
         Log.d(TAG, "Text: " + hypothesis);
@@ -156,7 +151,6 @@ public class VoskSTT implements org.vosk.android.RecognitionListener {
 
 
     // Final result
-    @OptIn(markerClass = UnstableApi.class)
     @Override
     public void onFinalResult(String hypothesis) {
         Log.d(TAG, "Final Result: " + hypothesis);
@@ -185,7 +179,6 @@ public class VoskSTT implements org.vosk.android.RecognitionListener {
 
 
     // Initialize a speech recognizer for Vosk service
-    @OptIn(markerClass = UnstableApi.class)
     public void recognizeMicrophone() {
         // Verify model's existence
         if (model == null) {
@@ -230,7 +223,6 @@ public class VoskSTT implements org.vosk.android.RecognitionListener {
     }
 
     // Callbacks
-    @OptIn(markerClass = UnstableApi.class)
     @Override
     public void onError(Exception e) {
         Log.e(TAG, "Vosk Error: " + e.getMessage());
@@ -241,16 +233,9 @@ public class VoskSTT implements org.vosk.android.RecognitionListener {
     }
 
     // Timeout
-    @OptIn(markerClass = UnstableApi.class)
     @Override
     public void onTimeout() {
         Log.d(TAG, "Vosk Timeout");
         recognizeMicrophone();
     }
-
-    // Get the final result
-    public String getLastValidResult() {
-        return lastValidResult != null ? lastValidResult : "";
-    }
-
 }

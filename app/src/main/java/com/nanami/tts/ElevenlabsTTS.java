@@ -176,7 +176,8 @@ public class ElevenlabsTTS {
 
     // Plays an audio stream using MediaPlayer.
     public void playAudioStream(InputStream audioStream, Context context, SpeechCompletionListener listener) {
-        File tempWavFile = null;
+        File tempWavFile;
+
         try {
             tempWavFile = File.createTempFile("temp_elevenlabs_audio", ".wav", context.getCacheDir()); // Save as WAV
             tempWavFile.deleteOnExit();
@@ -240,7 +241,6 @@ public class ElevenlabsTTS {
                 mediaPlayer.reset();
             }
 
-            final File finalTempWavFile = tempWavFile;
             final List<Float> finalAmplitudeData = amplitudeData;
 
             mediaPlayer.setOnCompletionListener(mp -> {
@@ -278,8 +278,6 @@ public class ElevenlabsTTS {
             Log.d(TAG, "Audio playback started.");
 
             new Thread(() -> {
-                long startTime = System.currentTimeMillis();
-
                 for (int i = 0; i < finalAmplitudeData.size(); i++) {
                     if (!mediaPlayer.isPlaying()) {
                         break;
