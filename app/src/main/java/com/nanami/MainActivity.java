@@ -171,7 +171,7 @@ public class MainActivity extends Activity implements VoskSTT.VoskSTTListener {
                             // Toast.makeText(MainActivity.this, "Ollama said: " + ollamaResponse, Toast.LENGTH_LONG).show();
 
                             // Speak the response and only restart Vosk AFTER speech is done
-                            elevenlabsModel.speak(MainActivity.this, ollamaResponse, new ElevenlabsTTS.SpeechCompletionListener() {
+                            elevenlabsModel.singAssetSong(MainActivity.this, "suki_dakara", new ElevenlabsTTS.SpeechCompletionListener() {
                                 @Override
                                 public void onSpeechFinished() {
                                     runOnUiThread(() -> {
@@ -189,6 +189,25 @@ public class MainActivity extends Activity implements VoskSTT.VoskSTTListener {
                                     });
                                 }
                             });
+
+//                            elevenlabsModel.speak(MainActivity.this, ollamaResponse, new ElevenlabsTTS.SpeechCompletionListener() {
+//                                @Override
+//                                public void onSpeechFinished() {
+//                                    runOnUiThread(() -> {
+//                                        Log.d(TAG, "ElevenLabs speech finished. Resuming Vosk listening.");
+//                                        voskModel.recognizeMicrophone(); // Resume listening here
+//                                    });
+//                                }
+//
+//                                @Override
+//                                public void onSpeechError(Exception e) {
+//                                    runOnUiThread(() -> {
+//                                        Log.e(TAG, "ElevenLabs Speech Error: " + e.getMessage());
+//                                        // Decide: Should Vosk restart even if speech failed? Usually yes.
+//                                        voskModel.recognizeMicrophone();
+//                                    });
+//                                }
+//                            });
                         });
                     }
 
