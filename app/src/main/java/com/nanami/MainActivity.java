@@ -32,6 +32,7 @@ public class MainActivity extends Activity implements VoskSTT.VoskSTTListener {
     private Ollama ollamaModel;
     private VoskSTT voskModel;
     private ElevenlabsTTS elevenlabsModel;
+    private final String keywordSong = "*sing*";
 
     @OptIn(markerClass = UnstableApi.class)
     @Override
@@ -168,46 +169,69 @@ public class MainActivity extends Activity implements VoskSTT.VoskSTTListener {
                     public void onSuccess(String ollamaResponse) {
                         runOnUiThread(() -> {
                             Log.d(TAG, "Ollama Response: " + ollamaResponse);
-                            // Toast.makeText(MainActivity.this, "Ollama said: " + ollamaResponse, Toast.LENGTH_LONG).show();
 
-                            // Speak the response and only restart Vosk AFTER speech is done
-                            elevenlabsModel.singAssetSong(MainActivity.this, "suki_dakara", new ElevenlabsTTS.SpeechCompletionListener() {
-                                @Override
-                                public void onSpeechFinished() {
-                                    runOnUiThread(() -> {
-                                        Log.d(TAG, "ElevenLabs speech finished. Resuming Vosk listening.");
-                                        voskModel.recognizeMicrophone(); // Resume listening here
-                                    });
-                                }
+                            if (keywordSong.equalsIgnoreCase(ollamaResponse.substring(0, keywordSong.length()))) {
+                                Log.d(TAG, "Attempting to sing a song.");
 
-                                @Override
-                                public void onSpeechError(Exception e) {
-                                    runOnUiThread(() -> {
-                                        Log.e(TAG, "ElevenLabs Speech Error: " + e.getMessage());
-                                        // Decide: Should Vosk restart even if speech failed? Usually yes.
-                                        voskModel.recognizeMicrophone();
-                                    });
-                                }
-                            });
+                                elevenlabsModel.speak(MainActivity.this, ollamaResponse, new ElevenlabsTTS.SpeechCompletionListener() {
+                                    @Override
+                                    public void onSpeechFinished() {
+                                        runOnUiThread(() -> {
+                                            Log.d(TAG, "ElevenLabs speech finished. Resuming Vosk listening.");
+                                        });
 
-//                            elevenlabsModel.speak(MainActivity.this, ollamaResponse, new ElevenlabsTTS.SpeechCompletionListener() {
-//                                @Override
-//                                public void onSpeechFinished() {
-//                                    runOnUiThread(() -> {
-//                                        Log.d(TAG, "ElevenLabs speech finished. Resuming Vosk listening.");
-//                                        voskModel.recognizeMicrophone(); // Resume listening here
-//                                    });
-//                                }
-//
-//                                @Override
-//                                public void onSpeechError(Exception e) {
-//                                    runOnUiThread(() -> {
-//                                        Log.e(TAG, "ElevenLabs Speech Error: " + e.getMessage());
-//                                        // Decide: Should Vosk restart even if speech failed? Usually yes.
-//                                        voskModel.recognizeMicrophone();
-//                                    });
-//                                }
-//                            });
+                                        // Sing a song from the asset
+                                        elevenlabsModel.singAssetSong(MainActivity.this, "suki_dakara", new ElevenlabsTTS.SpeechCompletionListener() {
+                                            @Override
+                                            public void onSpeechFinished() {
+                                                runOnUiThread(() -> {
+                                                    Log.d(TAG, "Finished singing a song.");
+                                                    voskModel.recognizeMicrophone(); // Resume listening here
+                                                });
+                                            }
+
+                                            @Override
+                                            public void onSpeechError(Exception e) {
+                                                runOnUiThread(() -> {
+                                                    Log.e(TAG, "Sing a song error: " + e.getMessage());
+                                                    // Decide: Should Vosk restart even if speech failed? Usually yes.
+                                                    voskModel.recognizeMicrophone();
+                                                });
+                                            }
+                                        });
+                                    }
+
+                                    @Override
+                                    public void onSpeechError(Exception e) {
+                                        runOnUiThread(() -> {
+                                            Log.e(TAG, "ElevenLabs Speech Error: " + e.getMessage());
+                                            voskModel.recognizeMicrophone();
+                                        });
+                                    }
+                                });
+
+                            } else {
+                                Log.d(TAG, "Attempting to speak.");
+
+                                elevenlabsModel.speak(MainActivity.this, ollamaResponse, new ElevenlabsTTS.SpeechCompletionListener() {
+                                    @Override
+                                    public void onSpeechFinished() {
+                                        runOnUiThread(() -> {
+                                            Log.d(TAG, "ElevenLabs speech finished. Resuming Vosk listening.");
+                                            voskModel.recognizeMicrophone(); // Resume listening here
+                                        });
+                                    }
+
+                                    @Override
+                                    public void onSpeechError(Exception e) {
+                                        runOnUiThread(() -> {
+                                            Log.e(TAG, "ElevenLabs Speech Error: " + e.getMessage());
+                                            // Decide: Should Vosk restart even if speech failed? Usually yes.
+                                            voskModel.recognizeMicrophone();
+                                        });
+                                    }
+                                });
+                            }
                         });
                     }
 

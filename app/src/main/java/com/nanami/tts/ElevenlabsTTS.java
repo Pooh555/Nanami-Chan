@@ -427,6 +427,7 @@ public class ElevenlabsTTS {
                     .setUsage(AudioAttributes.USAGE_MEDIA)
                     .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
                     .build());
+            mediaPlayer.setVolume(0.3f, 0.3f);
 
             mediaPlayer.prepare();
             mediaPlayer.start();
